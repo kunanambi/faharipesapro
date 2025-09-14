@@ -144,18 +144,9 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="invitedBy"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input placeholder="Invited by" {...field} readOnly className="bg-white/50 text-black placeholder:text-gray-500 rounded-full py-6 text-lg cursor-not-allowed"/>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        
+        <p className="text-center text-white">Invited By : fahariceo</p>
+
         <Button 
             type="submit" 
             className="w-full !mt-10 rounded-full py-6 text-lg font-bold bg-gradient-to-r from-[#e6b366] to-[#d4a050] text-primary-foreground" 
