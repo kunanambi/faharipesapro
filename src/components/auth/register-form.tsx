@@ -19,6 +19,7 @@ import { CheckCircle, Eye, EyeOff } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
@@ -33,7 +34,7 @@ const formSchema = z.object({
 });
 
 export function RegisterForm() {
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const supabase = createClient();
   const { toast } = useToast();
@@ -63,6 +64,7 @@ export function RegisterForm() {
           username,
           phone,
           invited_by: invitedBy,
+          status: 'pending', // Add initial status
         },
       },
     });
@@ -76,24 +78,7 @@ export function RegisterForm() {
       return;
     }
 
-    setIsSubmitted(true);
-  }
-
-  if (isSubmitted) {
-    return (
-      <div className="flex flex-col items-center justify-center text-center p-8 bg-green-50/10 rounded-lg border border-green-200/20">
-        <CheckCircle className="h-16 w-16 text-green-400 mb-4" />
-        <h3 className="font-headline text-2xl font-semibold mb-2 text-white">Registration Submitted!</h3>
-        <p className="text-muted-foreground mb-6">
-          Please check your email to verify your account. Your registration will then be pending approval.
-        </p>
-        <Button asChild className="rounded-full py-6 text-lg font-bold bg-gradient-to-r from-[#e6b366] to-[#d4a050] text-primary-foreground">
-          <Link href="/">
-            Back to Home
-          </Link>
-        </Button>
-      </div>
-    );
+    router.push("/pending");
   }
 
   return (

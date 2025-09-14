@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -29,6 +29,7 @@ export function LoginView() {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const supabase = createClient();
+  const [userStatus, setUserStatus] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,7 +42,7 @@ export function LoginView() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { email, password } = values;
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -54,12 +55,16 @@ export function LoginView() {
       });
       return;
     }
-    
-    // Check if user is admin
-    if (email === "admin@fahari.com") {
-      router.push("/admin/dashboard");
-    } else {
-      router.push("/dashboard");
+
+    if (data.user) {
+      const status = data.user.user_metadata?.status;
+      if (status === 'pending') {
+        router.push('/pending');
+      } else if (email === "admin@fahari.com") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
     }
   }
 
