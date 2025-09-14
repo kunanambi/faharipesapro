@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { CheckCircle, Eye, EyeOff } from "lucide-react";
+import { Checkbox } from "../ui/checkbox";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
@@ -24,6 +25,9 @@ const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
   invitedBy: z.string().optional(),
+  terms: z.boolean().refine((val) => val === true, {
+    message: "You must accept the terms and conditions.",
+  }),
 });
 
 export function RegisterForm() {
@@ -39,6 +43,7 @@ export function RegisterForm() {
       email: "",
       password: "",
       invitedBy: "fahariceo", // Example referrer username
+      terms: false,
     },
   });
 
@@ -146,6 +151,27 @@ export function RegisterForm() {
         />
         
         <p className="text-center text-white">Invited By : fahariceo</p>
+
+        <FormField
+          control={form.control}
+          name="terms"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center space-x-3 space-y-0 text-white justify-center">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  id="terms"
+                  className="border-white"
+                />
+              </FormControl>
+              <FormLabel htmlFor="terms" className="text-sm font-normal">
+                Accept Terms and Conditions
+              </FormLabel>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <Button 
             type="submit" 
