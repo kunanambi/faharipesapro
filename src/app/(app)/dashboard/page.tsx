@@ -8,6 +8,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <OfferCard />
+      <div>
+        <h2 className="text-2xl font-bold">Hi, Fahari User!</h2>
+      </div>
       <div className="grid grid-cols-1 gap-6">
         <StatCard
           title="Balance"
