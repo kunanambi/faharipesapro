@@ -7,7 +7,7 @@ export function VideoSection() {
     const videoThumbs = PlaceHolderImages.filter(img => img.id.startsWith('video-thumb-'));
 
   return (
-    <Card className="shadow-md">
+    <Card>
       <CardHeader>
         <CardTitle className="font-headline">Featured Videos</CardTitle>
         <CardDescription>

@@ -12,7 +12,7 @@ type StatCardProps = {
 
 export function StatCard({ title, value, icon, description, color }: StatCardProps) {
   return (
-    <Card className="shadow-md transition-all hover:shadow-lg hover:-translate-y-1">
+    <Card className="transition-all hover:shadow-lg hover:-translate-y-1">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <div className="text-muted-foreground">{icon}</div>

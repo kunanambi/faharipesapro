@@ -25,7 +25,7 @@ export function ReferralCard() {
   };
 
   return (
-    <Card className="shadow-md h-full">
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="font-headline">Referral Program</CardTitle>
         <CardDescription>

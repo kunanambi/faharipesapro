@@ -15,24 +15,22 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, Mail } from "lucide-react";
+import { CheckCircle, Eye, EyeOff } from "lucide-react";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
-  username: z.string().min(3, { message: "Username must be at least 3 characters." }),
-  phone: z.string().min(10, { message: "Please enter a valid phone number." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
 });
 
 export function RegisterForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: "",
-      username: "",
-      phone: "",
       email: "",
       password: "",
     },
@@ -48,15 +46,15 @@ export function RegisterForm() {
 
   if (isSubmitted) {
     return (
-      <div className="flex flex-col items-center justify-center text-center p-8 bg-green-50 rounded-lg border border-green-200">
-        <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
-        <h3 className="font-headline text-2xl font-semibold mb-2">Registration Submitted!</h3>
+      <div className="flex flex-col items-center justify-center text-center p-8 bg-green-50/10 rounded-lg border border-green-200/20">
+        <CheckCircle className="h-16 w-16 text-green-400 mb-4" />
+        <h3 className="font-headline text-2xl font-semibold mb-2 text-white">Registration Submitted!</h3>
         <p className="text-muted-foreground mb-6">
-          Your registration is now pending approval from an administrator. You will be notified via email once your account is active.
+          Your registration is now pending approval. You will be notified via email once your account is active.
         </p>
-        <Button asChild>
+        <Button asChild className="rounded-full py-6 text-lg font-bold bg-gradient-to-r from-[#e6b366] to-[#d4a050] text-primary-foreground">
           <Link href="/">
-            <Mail className="mr-2 h-4 w-4" /> Back to Home
+            Back to Home
           </Link>
         </Button>
       </div>
@@ -65,41 +63,14 @@ export function RegisterForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="fullName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="username"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Username</FormLabel>
-              <FormControl>
-                <Input placeholder="johndoe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number</FormLabel>
-              <FormControl>
-                <Input type="tel" placeholder="+1 (555) 123-4567" {...field} />
+                <Input placeholder="Full Name" {...field} className="bg-white/90 text-black placeholder:text-gray-500 rounded-full py-6 text-lg"/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -110,9 +81,8 @@ export function RegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
+                <Input type="email" placeholder="Email" {...field} className="bg-white/90 text-black placeholder:text-gray-500 rounded-full py-6 text-lg"/>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -123,23 +93,34 @@ export function RegisterForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="••••••••" {...field} />
+                 <div className="relative">
+                    <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Password"
+                        {...field}
+                        className="bg-white/90 text-black placeholder:text-gray-500 rounded-full py-6 text-lg pr-12"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500"
+                    >
+                        {showPassword ? <EyeOff /> : <Eye />}
+                    </button>
+                    </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full !mt-6" size="lg" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Submitting..." : "Register"}
+        <Button 
+            type="submit" 
+            className="w-full !mt-10 rounded-full py-6 text-lg font-bold bg-gradient-to-r from-[#e6b366] to-[#d4a050] text-primary-foreground" 
+            disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting ? "Registering..." : "Register"}
         </Button>
-         <p className="text-center text-sm text-muted-foreground pt-2">
-          Already have an account?{' '}
-          <Link href="/" className="font-medium text-primary hover:underline">
-            Log in
-          </Link>
-        </p>
       </form>
     </Form>
   );

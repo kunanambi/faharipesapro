@@ -18,7 +18,6 @@ import {
   Users,
   Video,
 } from "lucide-react";
-import { Button } from "./ui/button";
 
 const UserNav = () => (
   <>
@@ -77,11 +76,11 @@ export function AppSidebar() {
   return (
     <>
       <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <DollarSign className="h-5 w-5 text-primary-foreground" />
+        <div className="flex items-center gap-2 justify-center group-data-[collapsible=icon]:justify-start">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <DollarSign className="h-5 w-5" />
           </div>
-          <span className="font-headline text-lg font-semibold">
+          <span className="font-headline text-lg font-semibold group-data-[collapsible=icon]:hidden">
             Fahari Pesa
           </span>
         </div>
@@ -100,7 +99,7 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Log Out" variant="outline">
+            <SidebarMenuButton asChild tooltip="Log Out">
               <Link href="/">
                 <LogOut />
                 <span>Log Out</span>

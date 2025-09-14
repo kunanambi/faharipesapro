@@ -10,7 +10,7 @@ export function AdBanner() {
   }
 
   return (
-    <Card className="overflow-hidden shadow-md">
+    <Card className="overflow-hidden">
       <CardContent className="p-0">
         <div className="relative aspect-[4/1] w-full cursor-pointer">
           <Image
