@@ -11,8 +11,11 @@ export function RegisterView() {
       <div className="absolute -bottom-1/4 -right-1/4 w-[45%] h-[45%] rounded-full border-[1.5px] border-primary/50" />
 
       <div className="relative z-10 w-full max-w-sm">
+        <div className="text-center mb-6">
+            <h1 className="font-headline text-5xl font-bold text-white">FAHARI PESA</h1>
+        </div>
         <div className="text-center mb-10">
-          <h1 className="font-headline text-5xl font-bold text-white">Create Account</h1>
+          <h2 className="font-headline text-3xl font-bold text-white">Create Account</h2>
         </div>
         
         <RegisterForm />

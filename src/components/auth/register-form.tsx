@@ -38,7 +38,7 @@ export function RegisterForm() {
       phone: "",
       email: "",
       password: "",
-      invitedBy: "",
+      invitedBy: "user123", // Example referrer username
     },
   });
 
@@ -150,7 +150,7 @@ export function RegisterForm() {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input placeholder="Invited by (Optional)" {...field} className="bg-white/90 text-black placeholder:text-gray-500 rounded-full py-6 text-lg"/>
+                <Input placeholder="Invited by" {...field} readOnly className="bg-white/50 text-black placeholder:text-gray-500 rounded-full py-6 text-lg cursor-not-allowed"/>
               </FormControl>
               <FormMessage />
             </FormItem>
