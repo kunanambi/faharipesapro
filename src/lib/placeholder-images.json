@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "ad-banner-1",
+      "description": "Advertisement banner showing a vibrant abstract design.",
+      "imageUrl": "https://picsum.photos/seed/ad1/800/200",
+      "imageHint": "abstract advertisement"
+    },
+    {
+      "id": "video-thumb-1",
+      "description": "Thumbnail for a video about financial planning.",
+      "imageUrl": "https://picsum.photos/seed/vt1/400/225",
+      "imageHint": "finance meeting"
+    },
+    {
+      "id": "video-thumb-2",
+      "description": "Thumbnail for a video about investment strategies.",
+      "imageUrl": "https://picsum.photos/seed/vt2/400/225",
+      "imageHint": "stock market"
+    },
+    {
+      "id": "video-thumb-3",
+      "description": "Thumbnail for a video about earning online.",
+      "imageUrl": "https://picsum.photos/seed/vt3/400/225",
+      "imageHint": "laptop desk"
+    },
+    {
+      "id": "video-thumb-4",
+      "description": "Thumbnail for a video tutorial.",
+      "imageUrl": "https://picsum.photos/seed/vt4/400/225",
+      "imageHint": "online learning"
+    }
+  ]
 }
