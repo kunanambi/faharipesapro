@@ -1,60 +1,46 @@
-import { AdBanner } from "@/components/dashboard/ad-banner";
-import { ReferralCard } from "@/components/dashboard/referral-card";
+import { OfferCard } from "@/components/dashboard/offer-card";
 import { SpinWheel } from "@/components/dashboard/spin-wheel";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { VideoSection } from "@/components/dashboard/video-section";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, Users } from "lucide-react";
+import { BarChart2, TrendingDown, TrendingUp } from "lucide-react";
 
 export default function DashboardPage() {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div className="lg:col-span-3">
-        <h1 className="font-headline text-3xl font-bold">User Dashboard</h1>
-      </div>
+    <div className="space-y-6">
+      <OfferCard />
+      <div className="grid grid-cols-1 gap-6">
+        <StatCard
+          title="Balance"
+          value="0 TZS"
+          icon={<TrendingUp className="text-white/80" />}
+          cardClassName="bg-green-600/90 text-white"
+          description=""
+        />
+        <StatCard
+          title="Net Profit"
+          value="0 TZS"
+          icon={<BarChart2 className="text-white/80" />}
+          cardClassName="bg-blue-600/90 text-white"
+          description=""
+        />
+        <StatCard
+          title="Cost"
+          value="5,200 TZS"
+          icon={<TrendingDown className="text-white/80" />}
+          cardClassName="bg-red-600/90 text-white"
+          description=""
+        />
 
-      <StatCard
-        title="Account Balance"
-        value="KSh 12,350.00"
-        icon={<DollarSign />}
-        description="+12% from last month"
-      />
-      <StatCard
-        title="Total Profits"
-        value="KSh 7,150.00"
-        icon={<TrendingUp />}
-        description="+8% from last month"
-        color="text-green-500"
-      />
-      <StatCard
-        title="Activation Cost"
-        value="KSh 5,200.00"
-        icon={<DollarSign />}
-        description="One-time platform fee"
-        color="text-red-500"
-      />
-
-      <div className="lg:col-span-2">
-        <ReferralCard />
-      </div>
-
-      <div className="lg:col-span-1">
-         <Card className="h-full">
+        <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Spin & Win</CardTitle>
+            <CardTitle className="font-headline text-center">Spin to Win!</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center justify-center">
-            <SpinWheel />
+            <div className="w-full max-w-sm">
+                <SpinWheel />
+            </div>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="lg:col-span-3">
-        <VideoSection />
-      </div>
-
-       <div className="lg:col-span-3">
-        <AdBanner />
       </div>
     </div>
   );
