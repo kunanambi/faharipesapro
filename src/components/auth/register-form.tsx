@@ -38,7 +38,7 @@ export function RegisterForm() {
       phone: "",
       email: "",
       password: "",
-      invitedBy: "user123", // Example referrer username
+      invitedBy: "fahariceo", // Example referrer username
     },
   });
 
