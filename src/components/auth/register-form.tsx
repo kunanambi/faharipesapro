@@ -19,8 +19,11 @@ import { CheckCircle, Eye, EyeOff } from "lucide-react";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
+  username: z.string().min(2, { message: "Username must be at least 2 characters." }),
+  phone: z.string().min(10, { message: "Please enter a valid phone number." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  invitedBy: z.string().optional(),
 });
 
 export function RegisterForm() {
@@ -31,8 +34,11 @@ export function RegisterForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: "",
+      username: "",
+      phone: "",
       email: "",
       password: "",
+      invitedBy: "",
     },
   });
 
@@ -78,6 +84,30 @@ export function RegisterForm() {
         />
         <FormField
           control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="Username" {...field} className="bg-white/90 text-black placeholder:text-gray-500 rounded-full py-6 text-lg"/>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input type="tel" placeholder="Phone Number" {...field} className="bg-white/90 text-black placeholder:text-gray-500 rounded-full py-6 text-lg"/>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
@@ -109,6 +139,18 @@ export function RegisterForm() {
                         {showPassword ? <EyeOff /> : <Eye />}
                     </button>
                     </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="invitedBy"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="Invited by (Optional)" {...field} className="bg-white/90 text-black placeholder:text-gray-500 rounded-full py-6 text-lg"/>
               </FormControl>
               <FormMessage />
             </FormItem>
