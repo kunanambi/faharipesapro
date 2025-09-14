@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { createClient } from "@/lib/supabase/client";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -24,7 +26,9 @@ const formSchema = z.object({
 
 export function LoginView() {
   const router = useRouter();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const supabase = createClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -34,10 +38,29 @@ export function LoginView() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Simulating login with:", values);
-    // Simulate API call
-    router.push("/dashboard");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const { email, password } = values;
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if user is admin
+    if (email === "admin@fahari.com") {
+      router.push("/admin/dashboard");
+    } else {
+      router.push("/dashboard");
+    }
   }
 
   return (

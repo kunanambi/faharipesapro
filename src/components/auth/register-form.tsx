@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { CheckCircle, Eye, EyeOff } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
@@ -33,6 +35,8 @@ const formSchema = z.object({
 export function RegisterForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const supabase = createClient();
+  const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,12 +51,32 @@ export function RegisterForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("Simulating registration with:", values);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitted(true);
-    }, 1000);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const { email, password, fullName, username, phone, invitedBy } = values;
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          username,
+          phone,
+          invited_by: invitedBy,
+        },
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "Registration Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitted(true);
   }
 
   if (isSubmitted) {
@@ -61,7 +85,7 @@ export function RegisterForm() {
         <CheckCircle className="h-16 w-16 text-green-400 mb-4" />
         <h3 className="font-headline text-2xl font-semibold mb-2 text-white">Registration Submitted!</h3>
         <p className="text-muted-foreground mb-6">
-          Your registration is now pending approval. You will be notified via email once your account is active.
+          Please check your email to verify your account. Your registration will then be pending approval.
         </p>
         <Button asChild className="rounded-full py-6 text-lg font-bold bg-gradient-to-r from-[#e6b366] to-[#d4a050] text-primary-foreground">
           <Link href="/">
