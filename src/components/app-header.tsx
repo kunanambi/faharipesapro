@@ -11,14 +11,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { LogOut, Settings, User } from "lucide-react";
 import Link from "next/link";
+import { DollarSign } from "lucide-react";
 
 export function AppHeader() {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-card/80 px-4 backdrop-blur-sm md:px-6">
       <div className="flex items-center gap-2">
         <SidebarTrigger className="md:hidden" />
-        <div className="hidden md:block">
-          {/* Could be used for breadcrumbs or page title */}
+        <div className="flex items-center gap-2">
+           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground md:hidden">
+            <DollarSign className="h-5 w-5" />
+          </div>
+          <span className="font-headline text-lg font-semibold md:hidden">
+            Fahari Pesa
+          </span>
         </div>
       </div>
       <div className="flex items-center gap-4">
