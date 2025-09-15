@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -17,19 +18,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Check, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import type { SupabaseUser } from "@/lib/types";
+import type { PublicUser } from "@/lib/types";
 import { approveUser } from "@/app/admin/users/actions";
 
-type UserWithStatus = SupabaseUser & {
-  dbStatus: 'pending' | 'approved' | 'rejected';
-};
-
-export function ApprovalTable({ users: initialUsers }: { users: UserWithStatus[] }) {
-  const [users, setUsers] = useState<UserWithStatus[]>(initialUsers);
+export function ApprovalTable({ users: initialUsers }: { users: PublicUser[] }) {
+  const [users, setUsers] = useState<PublicUser[]>(initialUsers);
   const { toast } = useToast();
 
   const handleApprove = async (userId: string) => {
@@ -37,7 +33,7 @@ export function ApprovalTable({ users: initialUsers }: { users: UserWithStatus[]
     const userToApprove = users.find(u => u.id === userId);
 
     // Optimistically update the UI
-    setUsers(users.filter((user) => user.id !== userId));
+    setUsers(users.map(u => u.id === userId ? {...u, status: 'approved'} : u));
 
     const { error } = await approveUser(userId);
 
@@ -52,7 +48,7 @@ export function ApprovalTable({ users: initialUsers }: { users: UserWithStatus[]
     } else {
       toast({
         title: "User Approved",
-        description: `${userToApprove?.raw_user_meta_data.full_name} has been approved.`,
+        description: `${userToApprove?.full_name} has been approved.`,
       });
     }
   };
@@ -60,14 +56,15 @@ export function ApprovalTable({ users: initialUsers }: { users: UserWithStatus[]
   const handleReject = (userId: string) => {
     // We can implement rejection logic later
      const user = users.find(u => u.id === userId);
+     // For now, just remove from view.
      setUsers(users.filter((user) => user.id !== userId));
      toast({
        title: `User Rejected`,
-       description: `${user?.raw_user_meta_data.full_name} has been rejected.`,
+       description: `${user?.full_name} has been rejected.`,
      });
   }
   
-  const pendingUsers = users.filter(user => user.dbStatus === 'pending');
+  const pendingUsers = users.filter(user => user.status === 'pending');
 
   return (
     <Card>
@@ -100,17 +97,17 @@ export function ApprovalTable({ users: initialUsers }: { users: UserWithStatus[]
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarImage src={`https://i.pravatar.cc/40?u=${user.id}`} />
-                            <AvatarFallback>{user.raw_user_meta_data.full_name?.charAt(0)}</AvatarFallback>
+                            <AvatarFallback>{user.full_name?.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <div className="font-medium">
-                            {user.raw_user_meta_data.full_name}
-                            <div className="text-sm text-muted-foreground hidden sm:block">@{user.raw_user_meta_data.username}</div>
+                            {user.full_name}
+                            <div className="text-sm text-muted-foreground hidden sm:block">@{user.username}</div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">{user.email}</TableCell>
                       <TableCell className="hidden lg:table-cell">
-                        {isValidDate ? format(registrationDate, "PPP") : "N/A"}
+                         {isValidDate ? new Date(user.created_at!).toLocaleDateString() : "N/A"}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

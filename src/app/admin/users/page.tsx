@@ -1,69 +1,102 @@
 
+"use client";
 
-import { ApprovalTable } from "@/components/admin/approval-table";
-import { createClient } from "@/lib/supabase/server";
-import type { SupabaseUser } from "@/lib/types";
+import { useState, useEffect, useMemo } from 'react';
+import { createClient } from "@/lib/supabase/client";
+import type { PublicUser } from "@/lib/types";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { Users, UserCheck, UserClock, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { UserList } from "@/components/admin/user-list";
+import { useToast } from '@/hooks/use-toast';
 
-// This is a simplified type for the data we get from the public.users table
-type PublicUser = {
-    id: string;
-    created_at: string;
-    full_name: string;
-    username: string;
-    email: string;
-    phone: string;
-    status: 'pending' | 'approved' | 'rejected';
-    role: string;
-}
-
-export default async function UserManagementPage() {
+export default function UserManagementPage() {
     const supabase = createClient();
-    
-    // Fetch all users from the public.users table.
-    // This will rely on RLS policies to allow the admin to see all users.
-    const { data: users, error } = await supabase
-        .from('users')
-        .select('*');
+    const { toast } = useToast();
+    const [users, setUsers] = useState<PublicUser[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true);
 
-    if (error) {
-        console.error("Error fetching users:", error);
-        return (
-            <div className="text-red-500">
-                <p>Error loading users: {error.message}</p>
-                <p className="mt-4 text-sm text-muted-foreground">
-                    This might be because the Row Level Security (RLS) policies are not set up correctly. 
-                    Please ensure you have run the SQL script provided to enable admin access to the users table.
-                </p>
-            </div>
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Error fetching users:", error);
+                toast({
+                    title: "Error loading users",
+                    description: error.message,
+                    variant: "destructive"
+                });
+            } else {
+                setUsers(data as PublicUser[]);
+            }
+            setLoading(false);
+        };
+
+        fetchUsers();
+    }, [supabase, toast]);
+
+    const filteredUsers = useMemo(() => {
+        if (!searchTerm) return users;
+        return users.filter(user =>
+            user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.phone?.includes(searchTerm)
         );
-    }
-    
-    // The data from public.users doesn't match the SupabaseUser type exactly.
-    // We need to map it to the structure that ApprovalTable expects.
-    const combinedUsers = users.map(user => ({
-        id: user.id,
-        email: user.email,
-        created_at: user.created_at,
-        raw_user_meta_data: {
-            full_name: user.full_name,
-            username: user.username,
-            phone: user.phone,
-            balance: 0, // These fields are not in the public.users table yet
-            net_profit: 0,
-            status: user.status,
-        },
-        dbStatus: user.status,
-    })) as (SupabaseUser & { dbStatus: 'pending' | 'approved' | 'rejected' })[];
+    }, [users, searchTerm]);
 
+    const stats = useMemo(() => {
+        const total = users.length;
+        const approved = users.filter(u => u.status === 'approved').length;
+        const pending = users.filter(u => u.status === 'pending').length;
+        return { total, approved, pending };
+    }, [users]);
+    
+    const handleUserUpdate = (updatedUser: PublicUser) => {
+        setUsers(prevUsers => prevUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
+    };
+
+    const handleStatusToggle = (userId: string, newStatus: 'approved' | 'pending') => {
+        setUsers(prevUsers => prevUsers.map(u => u.id === userId ? { ...u, status: newStatus } : u));
+    }
+
+
+    if (loading) {
+        return <div>Loading users...</div>
+    }
 
     return (
         <div className="space-y-6">
             <div>
                 <h1 className="font-headline text-3xl font-bold">User Management</h1>
-                <p className="text-muted-foreground">Manage new user registrations.</p>
+                <p className="text-muted-foreground">Manage all users on the platform.</p>
             </div>
-            <ApprovalTable users={combinedUsers} />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <StatCard title="Total Users" value={stats.total.toString()} icon={<Users />} cardClassName="bg-blue-600/90 text-white" description="" />
+                <StatCard title="Approved" value={stats.approved.toString()} icon={<UserCheck />} cardClassName="bg-green-600/90 text-white" description="" />
+                <StatCard title="Pending" value={stats.pending.toString()} icon={<UserClock />} cardClassName="bg-yellow-600/90 text-white" description="" />
+            </div>
+
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search by name, username, email, or phone..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            
+            <UserList users={filteredUsers} onUserUpdate={handleUserUpdate} onStatusToggle={handleStatusToggle} />
+
         </div>
     )
 }
-

@@ -60,8 +60,9 @@ export default function ProfilePage() {
     setIsSaving(true);
     if (!user) return;
 
+    // Users can only update their full name and phone number.
     const { error } = await supabase.auth.updateUser({
-      data: { full_name: fullName, username, phone },
+      data: { full_name: fullName, phone },
     });
 
     if (error) {
@@ -97,8 +98,6 @@ export default function ProfilePage() {
       }
       if (!user) return;
 
-      // Supabase requires reauthentication for password changes if the user hasn't logged in recently.
-      // However, for a direct password update, you can use the updateUser method.
        const { error } = await supabase.auth.updateUser({
           password: newPassword
       });
@@ -162,7 +161,17 @@ export default function ProfilePage() {
                 <Input
                   id="username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  disabled
+                  className="cursor-not-allowed bg-muted/50"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  value={email}
+                  disabled
+                  className="cursor-not-allowed bg-muted/50"
                 />
               </div>
               <div className="grid gap-2">

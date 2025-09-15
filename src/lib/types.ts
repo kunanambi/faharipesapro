@@ -1,14 +1,14 @@
 
-export type User = {
+
+export type PublicUser = {
   id: string;
-  fullName: string;
-  username: string;
-  email: string;
-  phone: string;
-  registeredAt: Date;
+  created_at: string | null;
+  full_name: string | null;
+  username: string | null;
+  email: string | null;
+  phone: string | null;
   status: 'pending' | 'approved' | 'rejected';
-  balance?: number;
-  netProfit?: number;
+  role: string | null;
 };
 
 // This represents a user from auth.users joined with our public.users table
