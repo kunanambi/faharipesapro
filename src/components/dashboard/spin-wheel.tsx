@@ -98,7 +98,7 @@ export function SpinWheel() {
        <div className="absolute w-16 h-16 bg-white rounded-full border-4 border-primary/50 flex items-center justify-center shadow-lg">
        </div>
       <Button onClick={handleSpin} disabled={isSpinning} className="mt-8">
-        {isSpinning ? "Spinning..." : "Spin Now"}
+        {isSpinning ? "Inazunguka..." : "Zungusha Sasa"}
       </Button>
     </div>
   );
