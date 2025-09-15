@@ -7,7 +7,7 @@ export type PublicUser = {
   username: string | null;
   email: string | null;
   phone: string | null;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved';
   role: string | null;
 };
 

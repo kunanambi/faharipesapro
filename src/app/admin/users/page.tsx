@@ -29,7 +29,7 @@ export default function UserManagementPage() {
                 console.error("Error fetching users:", error);
                 toast({
                     title: "Error loading users",
-                    description: error.message,
+                    description: "Could not fetch user data. Check RLS policies.",
                     variant: "destructive"
                 });
             } else {
