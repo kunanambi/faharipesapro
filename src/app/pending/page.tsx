@@ -49,7 +49,7 @@ export default function PendingPage() {
         </div>
 
         <p className="text-muted-foreground mb-6">
-            Hi, <span className="font-bold text-primary">{user?.user_metadata.username || "user"}</span>! Your account is pending approval. Please complete the payment to activate your account.
+            Hi, <span className="font-bold text-primary">{user?.user_metadata?.username || "user"}</span>! Your account is pending approval. Please complete the payment to activate your account.
         </p>
 
         <h2 className="font-headline text-2xl font-bold text-white mb-4">Payment Instructions</h2>
