@@ -1,31 +1,76 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Hourglass } from "lucide-react";
+import { DollarSign, FileUp, MessageCircle, Wifi, Smartphone } from "lucide-react";
+
+// A simple placeholder for the Mastercard logo
+const MastercardLogo = () => (
+    <svg width="48" height="30" viewBox="0 0 48 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="48" height="30" rx="4" fill="transparent"/>
+        <circle cx="15" cy="15" r="10" fill="#EB001B"/>
+        <circle cx="33" cy="15" r="10" fill="#F79E1B" fillOpacity="0.8"/>
+    </svg>
+);
+
 
 export default function PendingPage() {
-  return (
-    <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden p-4">
-      {/* Decorative elements */}
-      <div className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full bg-primary/20" />
-      <div className="absolute -top-1/4 -left-1/4 w-[45%] h-[45%] rounded-full border-[1.5px] border-primary/50" />
-      <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full bg-primary/20" />
-      <div className="absolute -bottom-1/4 -right-1/4 w-[45%] h-[45%] rounded-full border-[1.5px] border-primary/50" />
+    const whatsappNumber = "+255768525345";
+    const whatsappMessage = "Hi Sir, I have made the payment. Please activate my account.";
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+      whatsappMessage
+    )}`;
 
-      <div className="relative z-10 w-full max-w-md text-center">
-        <div className="flex flex-col items-center justify-center text-center p-8 bg-card/50 backdrop-blur-sm rounded-2xl border border-border/20 shadow-lg">
-          <Hourglass className="h-16 w-16 text-primary mb-6" />
-          <h1 className="font-headline text-3xl font-bold mb-3 text-white">
-            Registration Pending
-          </h1>
-          <p className="text-muted-foreground mb-8 max-w-sm">
-            Thank you for registering! Your account is currently awaiting approval from an administrator. You will be notified via email once your account has been activated.
-          </p>
-          <Button asChild className="rounded-full py-6 text-lg font-bold bg-gradient-to-r from-[#e6b366] to-[#d4a050] text-primary-foreground">
-            <Link href="/">
-              Back to Home
-            </Link>
-          </Button>
+
+  return (
+    <div className="flex min-h-screen w-full items-center justify-center bg-background p-4 font-body">
+      <div className="w-full max-w-md text-center">
+
+      <div className="flex flex-col items-center justify-center mb-8">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-card border-2 border-primary mb-4">
+                <span className="font-headline text-4xl font-bold text-primary">F</span>
+            </div>
+             <h1 className="font-headline text-3xl font-bold text-white">Fahari Pesa</h1>
         </div>
+
+        <p className="text-muted-foreground mb-6">
+            Your account is pending approval. Please complete the payment to activate your account.
+        </p>
+
+        <h2 className="font-headline text-2xl font-bold text-white mb-4">Payment Instructions</h2>
+
+        {/* Payment Card */}
+        <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-yellow-600/30 to-neutral-900 p-6 text-left shadow-2xl mb-8 text-white relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-full bg-black/30 backdrop-blur-sm"></div>
+            <div className="relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                    <p className="font-semibold">Payment via M-Pesa</p>
+                    <Wifi className="w-6 h-6" />
+                </div>
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="w-10 h-8 bg-neutral-400 rounded-md flex items-center justify-center border-2 border-neutral-500">
+                        <Smartphone className="w-5 h-5 text-neutral-800"/>
+                    </div>
+                </div>
+
+                <div className="font-mono text-xl tracking-wider mb-2">
+                    0768 525 345
+                </div>
+                <div className="flex justify-between items-end">
+                    <p className="font-semibold text-lg">Joseph Kunambi</p>
+                    <MastercardLogo />
+                </div>
+            </div>
+        </div>
+        
+        <p className="text-muted-foreground mb-8">
+            After making payment, click the button below and submit your payment screenshot for account activation.
+        </p>
+
+        <Button asChild className="w-full rounded-full py-6 text-lg font-bold bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700">
+             <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="mr-2 h-6 w-6"/>
+                Contact on WhatsApp
+            </Link>
+        </Button>
       </div>
     </div>
   );
