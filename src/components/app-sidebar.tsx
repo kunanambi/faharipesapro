@@ -9,48 +9,118 @@ import {
   SidebarMenuButton,
   SidebarContent,
   SidebarFooter,
+  useSidebar,
 } from "./ui/sidebar";
 import {
-  DollarSign,
+  CreditCard,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
+  Play,
+  RefreshCw,
   Settings,
+  User,
   Users,
-  Video,
+  Youtube,
 } from "lucide-react";
 
-const UserNav = () => (
-  <>
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        tooltip="Dashboard"
-        isActive={usePathname() === "/dashboard"}
-      >
-        <Link href="/dashboard">
-          <LayoutDashboard />
-          <span>Dashboard</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip="Videos">
-        <Link href="#">
-          <Video />
-          <span>Videos</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild tooltip="Referrals">
-        <Link href="#">
-          <Users />
-          <span>Referrals</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  </>
-);
+const UserNav = () => {
+    const { setOpenMobile } = useSidebar();
+    const pathname = usePathname();
+
+    const handleLinkClick = () => {
+        setOpenMobile(false);
+    }
+  return (
+    <>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          tooltip="Dashboard"
+          isActive={pathname === "/dashboard"}
+          onClick={handleLinkClick}
+        >
+          <Link href="/dashboard">
+            <LayoutDashboard />
+            <span>Dashboard</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="My Team" isActive={pathname === "/team"} onClick={handleLinkClick}>
+          <Link href="/team">
+            <Users />
+            <span>My Team</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+       <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="Facebook Ads" onClick={handleLinkClick}>
+          <Link href="#">
+            <Play />
+            <span>Facebook Ads</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+       <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="Instagram Ads" onClick={handleLinkClick}>
+          <Link href="#">
+            <Play />
+            <span>Instagram Ads</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="YouTube Videos" onClick={handleLinkClick}>
+          <Link href="#">
+            <Youtube />
+            <span>YouTube Videos</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="Tiktok Videos" onClick={handleLinkClick}>
+          <Link href="#">
+            <Play />
+            <span>Tiktok Videos</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+       <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="Play Spin" onClick={handleLinkClick}>
+          <Link href="#">
+            <RefreshCw />
+            <span>Play Spin</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="WhatsApp Ads" onClick={handleLinkClick}>
+          <Link href="#">
+            <MessageCircle />
+            <span>WhatsApp Ads</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="Profile" isActive={pathname === "/profile"} onClick={handleLinkClick}>
+          <Link href="/profile">
+            <User />
+            <span>Profile</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="Withdrawal" onClick={handleLinkClick}>
+          <Link href="#">
+            <CreditCard />
+            <span>Withdrawal</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </>
+  );
+}
 
 const AdminNav = () => (
   <>
