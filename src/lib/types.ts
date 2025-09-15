@@ -1,3 +1,4 @@
+
 export type User = {
   id: string;
   fullName: string;
@@ -10,6 +11,7 @@ export type User = {
   netProfit?: number;
 };
 
+// This represents a user from auth.users joined with our public.users table
 export type SupabaseUser = {
   id: string;
   email?: string;
@@ -20,6 +22,7 @@ export type SupabaseUser = {
     phone: string;
     balance: number;
     net_profit: number;
-    status: 'pending' | 'approved' | 'rejected';
   };
+  // This status comes from our public.users table
+  dbStatus: 'pending' | 'approved' | 'rejected';
 };

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -29,7 +30,6 @@ export function LoginView() {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const supabase = createClient();
-  const [userStatus, setUserStatus] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,29 +42,56 @@ export function LoginView() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { email, password } = values;
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
+    if (signInError) {
       toast({
         title: "Login Failed",
-        description: error.message,
+        description: signInError.message,
         variant: "destructive",
       });
       return;
     }
 
-    if (data.user) {
-      if (data.user.email === 'admin@fahari.com') {
+    if (signInData.user) {
+      // Special case for admin user
+      if (signInData.user.email === 'admin@fahari.com') {
         router.push('/admin/dashboard');
         return;
       }
-      if (data.user.user_metadata?.status === 'pending') {
+      
+      // For regular users, check their status in the public.users table
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('status')
+        .eq('id', signInData.user.id)
+        .single();
+
+      if (userError) {
+        console.error("Error fetching user status:", userError);
+        toast({
+          title: "Login Failed",
+          description: "Could not verify user status. Please try again.",
+          variant: "destructive"
+        });
+        await supabase.auth.signOut(); // Log them out
+        return;
+      }
+
+      if (userData.status === 'pending') {
         router.push('/pending');
-      } else {
+      } else if (userData.status === 'approved') {
         router.push("/dashboard");
+      } else {
+         toast({
+          title: "Account Not Active",
+          description: "Your account is not active. Please contact support.",
+          variant: "destructive"
+        });
+        await supabase.auth.signOut();
       }
     }
   }

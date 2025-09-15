@@ -1,39 +1,56 @@
 
-
 import { ApprovalTable } from "@/components/admin/approval-table";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import type { SupabaseUser } from "@/lib/types";
 
+// This is a simplified type for the data we get from the public.users table
+type PublicUser = {
+    id: string;
+    created_at: string;
+    full_name: string;
+    username: string;
+    email: string;
+    phone: string;
+    status: 'pending' | 'approved' | 'rejected';
+}
+
 export default async function UserManagementPage() {
-    const supabase = createAdminClient();
+    const supabase = createClient();
     
-    // Fetch all users from auth.users
-    const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
-
-    if (authError) {
-        console.error("Error fetching auth users:", authError);
-        return <div>Error loading users. Check server logs for details. This might be due to a missing or incorrect SUPABASE_SERVICE_ROLE_KEY in your environment variables.</div>;
-    }
-
-    // Fetch statuses from the public.users table
-    const userIds = authUsers.map(u => u.id);
-    const { data: publicUsers, error: publicError } = await supabase
+    // Fetch all users from the public.users table.
+    // This will rely on RLS policies to allow the admin to see all users.
+    const { data: users, error } = await supabase
         .from('users')
-        .select('id, status')
-        .in('id', userIds);
+        .select('*');
 
-    if (publicError) {
-        console.error("Error fetching public users:", publicError);
-        return <div>Error loading user statuses.</div>;
+    if (error) {
+        console.error("Error fetching users:", error);
+        return (
+            <div className="text-red-500">
+                <p>Error loading users: {error.message}</p>
+                <p className="mt-4 text-sm text-muted-foreground">
+                    This might be because the Row Level Security (RLS) policies are not set up correctly. 
+                    Please ensure you have run the SQL script provided to enable admin access to the users table.
+                </p>
+            </div>
+        );
     }
-
-    // Create a map for quick status lookup
-    const statusMap = new Map(publicUsers.map(u => [u.id, u.status]));
-
-    // Combine auth user data with the status from the public table
-    const combinedUsers = authUsers.map(user => ({
-        ...user,
-        dbStatus: statusMap.get(user.id) || 'pending' // Default to pending if not found
+    
+    // The data from public.users doesn't match the SupabaseUser type exactly.
+    // We need to map it to the structure that ApprovalTable expects.
+    const combinedUsers = users.map(user => ({
+        id: user.id,
+        email: user.email,
+        created_at: user.created_at,
+        raw_user_meta_data: {
+            full_name: user.full_name,
+            username: user.username,
+            phone: user.phone,
+            balance: 0, // These fields are not in the public.users table yet
+            net_profit: 0,
+            status: user.status,
+        },
+        dbStatus: user.status,
     })) as (SupabaseUser & { dbStatus: 'pending' | 'approved' | 'rejected' })[];
 
 

@@ -1,34 +1,28 @@
+
 'use server'
 
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function approveUser(userId: string) {
-    const supabase = createAdminClient();
+    const supabase = createClient();
 
-    // First, update the status in our public 'users' table.
-    const { error: publicUserError } = await supabase
+    // The RLS policy on the 'users' table will check if the person
+    // making the request is an admin before allowing this update.
+    const { error } = await supabase
         .from('users')
         .update({ status: 'approved' })
         .eq('id', userId);
 
-    if (publicUserError) {
-        console.error("Error updating public user status:", publicUserError);
-        return { error: 'Failed to update user status.' };
+    if (error) {
+        console.error("Error approving user:", error);
+        return { error: 'Failed to approve user. Check RLS policies and server logs.' };
     }
     
-    // Then, update the metadata in the auth.users table.
-    const { error: authUserError } = await supabase.auth.admin.updateUserById(
-        userId,
-        { user_metadata: { status: 'approved' } }
-    )
-
-    if (authUserError) {
-        console.error("Error updating auth user metadata:", authUserError);
-        // Note: You might want to handle rollback logic here if the first update succeeded.
-        // For now, we'll just report the error.
-        return { error: 'Failed to update user auth metadata.' };
-    }
+    // We also need to update the metadata in auth.users for consistency,
+    // but this requires an admin client. For now, we will rely on the public.users status.
+    // The login flow should check the status from the public.users table.
+    // If you need to update auth metadata, a database function is the most secure way.
 
     revalidatePath('/admin/users');
     return { error: null };
