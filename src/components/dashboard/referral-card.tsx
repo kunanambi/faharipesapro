@@ -5,16 +5,13 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
 export function ReferralCard() {
   const { toast } = useToast();
-  const referralLink = "https://fahari.co/ref/user123";
+  const referralLink = "https://fahari-pesa.com/invite/user";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);
@@ -25,18 +22,14 @@ export function ReferralCard() {
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="font-headline">Referral Program</CardTitle>
-        <CardDescription>
-          Earn KSh 1,500 for every new user who signs up with your link.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex space-x-2">
-          <Input value={referralLink} readOnly />
-          <Button variant="outline" size="icon" onClick={handleCopy}>
-            <Copy className="h-4 w-4" />
+    <Card className="bg-card border border-border">
+      <CardContent className="pt-6">
+        <h3 className="text-lg font-bold mb-4 text-center">Copy Your Referral Link</h3>
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+          <Input value={referralLink} readOnly className="bg-background"/>
+          <Button variant="default" onClick={handleCopy} className="bg-green-600 hover:bg-green-700 text-white">
+            <Copy className="mr-2 h-4 w-4" />
+            Copy
           </Button>
         </div>
       </CardContent>
