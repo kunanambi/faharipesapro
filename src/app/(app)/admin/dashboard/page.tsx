@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Users, Play, Youtube, Cog } from "lucide-react";
+import { CreditCard, Users, Play, Youtube, Cog, Shield, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 const adminLinks = [
@@ -34,6 +35,16 @@ export default function AdminDashboardPage() {
                     </Link>
                 ))}
             </div>
+             <Card className="bg-card border border-border">
+                <CardContent className="pt-6">
+                <Button asChild className="w-full" variant="outline">
+                    <Link href="/dashboard">
+                    <User className="mr-2 h-4 w-4" />
+                    User Panel
+                    </Link>
+                </Button>
+                </CardContent>
+            </Card>
         </div>
     )
 }

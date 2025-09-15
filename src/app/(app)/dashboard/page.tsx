@@ -4,7 +4,8 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
-import { BarChart2, TrendingDown, TrendingUp } from "lucide-react";
+import { BarChart2, TrendingDown, TrendingUp, Shield } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
@@ -24,6 +25,7 @@ export default async function DashboardPage() {
   const netProfit = user.user_metadata?.net_profit || 0;
   const cost = 5200;
   const username = user.user_metadata?.username || 'User';
+  const isAdmin = user.email === 'admin@fahari.com';
 
 
   return (
@@ -56,6 +58,19 @@ export default async function DashboardPage() {
         />
 
         <ReferralCard />
+
+        {isAdmin && (
+          <Card className="bg-card border border-border">
+            <CardContent className="pt-6">
+              <Button asChild className="w-full">
+                <Link href="/admin/dashboard">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin Panel
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="bg-card border border-border">
             <CardContent className="pt-6">

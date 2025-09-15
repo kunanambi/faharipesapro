@@ -57,13 +57,7 @@ export function LoginView() {
     }
 
     if (data.user) {
-      if (email === "admin@fahari.com") {
-        router.push("/admin/dashboard");
-        return;
-      }
-
-      const status = data.user.user_metadata?.status;
-      if (status === 'pending') {
+      if (data.user.user_metadata?.status === 'pending') {
         router.push('/pending');
       } else {
         router.push("/dashboard");
