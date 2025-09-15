@@ -73,8 +73,8 @@ const UserNav = () => {
         </SidebarMenuButton>
       </SidebarMenuItem>
        <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="Play Spin" onClick={handleLinkClick}>
-          <Link href="/dashboard">
+        <SidebarMenuButton asChild tooltip="Play Spin" isActive={pathname === "/spin"} onClick={handleLinkClick}>
+          <Link href="/spin">
             <RefreshCw />
             <span>Play Spin</span>
           </Link>

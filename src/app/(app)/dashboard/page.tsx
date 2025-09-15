@@ -36,17 +36,6 @@ export default function DashboardPage() {
           description=""
         />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline text-center">Spin to Win!</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-center">
-            <div className="w-full max-w-sm">
-                <SpinWheel />
-            </div>
-          </CardContent>
-        </Card>
-
         <ReferralCard />
 
         <Card className="bg-card border border-border">
