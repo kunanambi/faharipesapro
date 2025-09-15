@@ -1,4 +1,5 @@
 
+
 import { ApprovalTable } from "@/components/admin/approval-table";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseUser } from "@/lib/types";
@@ -12,6 +13,7 @@ type PublicUser = {
     email: string;
     phone: string;
     status: 'pending' | 'approved' | 'rejected';
+    role: string;
 }
 
 export default async function UserManagementPage() {
@@ -64,3 +66,4 @@ export default async function UserManagementPage() {
         </div>
     )
 }
+

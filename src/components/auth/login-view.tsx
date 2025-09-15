@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -57,21 +58,15 @@ export function LoginView() {
     }
 
     if (signInData.user) {
-      // Special case for admin user
-      if (signInData.user.email === 'admin@fahari.com') {
-        router.push('/admin/dashboard');
-        return;
-      }
-      
-      // For regular users, check their status in the public.users table
+      // For all users, check their role and status from the public.users table
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('status')
+        .select('status, role')
         .eq('id', signInData.user.id)
         .single();
 
       if (userError) {
-        console.error("Error fetching user status:", userError);
+        console.error("Error fetching user data:", userError);
         toast({
           title: "Login Failed",
           description: "Could not verify user status. Please try again.",
@@ -80,7 +75,14 @@ export function LoginView() {
         await supabase.auth.signOut(); // Log them out
         return;
       }
+      
+      // Check if user is an admin
+      if (userData.role === 'admin') {
+        router.push('/admin/dashboard');
+        return;
+      }
 
+      // Handle regular users based on status
       if (userData.status === 'pending') {
         router.push('/pending');
       } else if (userData.status === 'approved') {
@@ -174,3 +176,4 @@ export function LoginView() {
     </div>
   );
 }
+

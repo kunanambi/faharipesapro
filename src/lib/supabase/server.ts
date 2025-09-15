@@ -39,10 +39,3 @@ export function createClient() {
     }
   )
 }
-
-export function createAdminClient() {
-    // This function is deprecated. We are using RLS policies instead of the service role key.
-    // For admin-level access, we will rely on RLS policies that check the user's role or email.
-    console.warn("createAdminClient is deprecated. Using createClient with RLS policies instead.");
-    return createClient();
-}
