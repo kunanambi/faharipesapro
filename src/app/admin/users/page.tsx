@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { createClient } from "@/lib/supabase/client";
 import type { PublicUser } from "@/lib/types";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { Users, UserCheck, UserClock, Search } from "lucide-react";
+import { Users, UserCheck, Clock, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { UserList } from "@/components/admin/user-list";
 import { useToast } from '@/hooks/use-toast';
@@ -81,7 +81,7 @@ export default function UserManagementPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <StatCard title="Total Users" value={stats.total.toString()} icon={<Users />} cardClassName="bg-blue-600/90 text-white" description="" />
                 <StatCard title="Approved" value={stats.approved.toString()} icon={<UserCheck />} cardClassName="bg-green-600/90 text-white" description="" />
-                <StatCard title="Pending" value={stats.pending.toString()} icon={<UserClock />} cardClassName="bg-yellow-600/90 text-white" description="" />
+                <StatCard title="Pending" value={stats.pending.toString()} icon={<Clock />} cardClassName="bg-yellow-600/90 text-white" description="" />
             </div>
 
             <div className="relative">
