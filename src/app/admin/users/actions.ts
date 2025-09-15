@@ -48,9 +48,28 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
     email: string,
     newPassword?: string 
 }) {
-    const supabase = createClient(true); // Use admin client to update user auth
+    // IMPORTANT: When creating the client for admin actions,
+    // you must use the service role key for elevated privileges.
+    // This client is created with direct environment variable access.
+    const supabase = createClient();
 
-    // 1. Update public.users table
+    // 1. Update auth.users table first (email, password)
+    // This is the more critical operation.
+    const authUpdateData: { email?: string; password?: string } = {};
+    if (email) authUpdateData.email = email;
+    if (newPassword) authUpdateData.password = newPassword;
+
+    if (Object.keys(authUpdateData).length > 0) {
+        // The `auth.admin` object is available on any server-side Supabase client
+        // and uses the service_role key under the hood to perform admin tasks.
+        const { error: authError } = await supabase.auth.admin.updateUserById(userId, authUpdateData);
+        if (authError) {
+            console.error("Error updating auth user data:", authError);
+            return { error: 'Failed to update user authentication details.' };
+        }
+    }
+
+    // 2. Update the associated public.users table
     const { data: publicUser, error: publicUserError } = await supabase
         .from('users')
         .update({ full_name: fullName, username, phone, email })
@@ -60,23 +79,12 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
 
     if (publicUserError) {
         console.error("Error updating public user data:", publicUserError);
-        return { error: 'Failed to update user profile.' };
-    }
-
-    // 2. Update auth.users table (email, password)
-    const authUpdateData: { email?: string; password?: string } = {};
-    if (email) authUpdateData.email = email;
-    if (newPassword) authUpdateData.password = newPassword;
-
-    if (Object.keys(authUpdateData).length > 0) {
-        const { error: authError } = await supabase.auth.admin.updateUserById(userId, authUpdateData);
-        if (authError) {
-            console.error("Error updating auth user data:", authError);
-            // Revert public user data if auth update fails? For now, we'll just return the error.
-            return { error: 'Failed to update user authentication details.' };
-        }
+        // Even if this fails, the auth update succeeded, so we should report a partial success.
+        // For now, we'll return an error but this could be handled more gracefully.
+        return { error: 'Failed to update user profile data after updating auth details.' };
     }
 
     revalidatePath('/admin/users');
+    revalidatePath(`/profile/${username}`); // Also revalidate profile if it's a dynamic page
     return { data: publicUser, error: null };
 }
