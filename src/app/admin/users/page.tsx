@@ -20,16 +20,14 @@ export default function UserManagementPage() {
     useEffect(() => {
         const fetchUsers = async () => {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('users')
-                .select('*')
-                .order('created_at', { ascending: false });
+            // Changed from .from().select() to .rpc() to call the secure database function
+            const { data, error } = await supabase.rpc('get_all_users');
 
             if (error) {
                 console.error("Error fetching users:", error);
                 toast({
                     title: "Error loading users",
-                    description: "Could not fetch user data. Check RLS policies.",
+                    description: "Could not fetch user data. Please check database permissions and RLS policies.",
                     variant: "destructive"
                 });
             } else {
