@@ -1,36 +1,55 @@
 import { OfferCard } from "@/components/dashboard/offer-card";
 import { ReferralCard } from "@/components/dashboard/referral-card";
-import { SpinWheel } from "@/components/dashboard/spin-wheel";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/server";
 import { BarChart2, TrendingDown, TrendingUp } from "lucide-react";
+import { redirect } from "next/navigation";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error || !data.user) {
+    redirect('/');
+  }
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US').format(value) + ' TZS';
+  }
+
+  const user = data.user;
+  const balance = user.user_metadata?.balance || 0;
+  const netProfit = user.user_metadata?.net_profit || 0;
+  const cost = 5200;
+  const username = user.user_metadata?.username || 'User';
+
+
   return (
     <div className="space-y-8 pb-24">
       <OfferCard />
       <div>
-        <h2 className="text-2xl font-bold">Hi, Fahari User!</h2>
+        <h2 className="text-2xl font-bold">Hi, {username}!</h2>
       </div>
       <div className="grid grid-cols-1 gap-6">
         <StatCard
           title="Balance"
-          value="0 TZS"
+          value={formatCurrency(balance)}
           icon={<TrendingUp className="text-white/80" />}
           cardClassName="bg-green-600/90 text-white"
           description=""
         />
         <StatCard
           title="Net Profit"
-          value="0 TZS"
+          value={formatCurrency(netProfit)}
           icon={<BarChart2 className="text-white/80" />}
           cardClassName="bg-blue-600/90 text-white"
           description=""
         />
         <StatCard
           title="Cost"
-          value="5,200 TZS"
+          value={formatCurrency(cost)}
           icon={<TrendingDown className="text-white/80" />}
           cardClassName="bg-red-600/90 text-white"
           description=""

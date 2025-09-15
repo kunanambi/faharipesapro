@@ -64,7 +64,9 @@ export function RegisterForm() {
           username,
           phone,
           invited_by: invitedBy,
-          status: 'pending', // Add initial status
+          status: 'pending',
+          balance: 0,
+          net_profit: 0
         },
       },
     });

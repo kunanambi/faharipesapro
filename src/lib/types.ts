@@ -6,4 +6,6 @@ export type User = {
   phone: string;
   registeredAt: Date;
   status: 'pending' | 'approved' | 'rejected';
+  balance?: number;
+  netProfit?: number;
 };
