@@ -31,7 +31,7 @@ export default function PendingPage() {
 
 
     const whatsappNumber = "+255768525345";
-    const whatsappMessage = "Hi Sir, I have made the payment. Please activate my account.";
+    const whatsappMessage = `Hi Sir, I have made the payment. Please activate my account. Username: ${user?.user_metadata?.username || ''} Email: ${user?.email || ''}`;
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
       whatsappMessage
     )}`;
