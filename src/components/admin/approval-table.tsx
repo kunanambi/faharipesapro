@@ -90,48 +90,53 @@ export function ApprovalTable({ users: initialUsers }: { users: UserWithStatus[]
             </TableHeader>
             <TableBody>
               {pendingUsers.length > 0 ? (
-                pendingUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={`https://i.pravatar.cc/40?u=${user.id}`} />
-                          <AvatarFallback>{user.raw_user_meta_data.full_name?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="font-medium">
-                          {user.raw_user_meta_data.full_name}
-                          <div className="text-sm text-muted-foreground hidden sm:block">@{user.raw_user_meta_data.username}</div>
+                pendingUsers.map((user) => {
+                  const registrationDate = user.created_at ? new Date(user.created_at) : null;
+                  const isValidDate = registrationDate && !isNaN(registrationDate.getTime());
+
+                  return (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage src={`https://i.pravatar.cc/40?u=${user.id}`} />
+                            <AvatarFallback>{user.raw_user_meta_data.full_name?.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="font-medium">
+                            {user.raw_user_meta_data.full_name}
+                            <div className="text-sm text-muted-foreground hidden sm:block">@{user.raw_user_meta_data.username}</div>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{user.email}</TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      {format(new Date(user.created_at), "PPP")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700 border-green-200"
-                          onClick={() => handleApprove(user.id)}
-                        >
-                          <Check className="h-4 w-4" />
-                          <span className="sr-only">Approve</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
-                          onClick={() => handleReject(user.id)}
-                        >
-                          <X className="h-4 w-4" />
-                          <span className="sr-only">Reject</span>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{user.email}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {isValidDate ? format(registrationDate, "PPP") : "N/A"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700 border-green-200"
+                            onClick={() => handleApprove(user.id)}
+                          >
+                            <Check className="h-4 w-4" />
+                            <span className="sr-only">Approve</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
+                            onClick={() => handleReject(user.id)}
+                          >
+                            <X className="h-4 w-4" />
+                            <span className="sr-only">Reject</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} className="h-24 text-center">
