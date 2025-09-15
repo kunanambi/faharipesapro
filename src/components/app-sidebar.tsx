@@ -22,7 +22,8 @@ import {
   Settings,
   Users,
   Youtube,
-  Cog
+  Cog,
+  Video,
 } from "lucide-react";
 
 const UserNav = () => {
@@ -124,7 +125,7 @@ const AdminNav = () => {
                 <SidebarMenuButton asChild tooltip="User Management" isActive={pathname === "/admin/users"} onClick={handleLinkClick}>
                     <Link href="/admin/users">
                         <Users />
-                        <span>User Management</span>
+                        <span>Users</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -132,31 +133,15 @@ const AdminNav = () => {
                 <SidebarMenuButton asChild tooltip="Withdrawals" isActive={pathname === "/admin/withdrawals"} onClick={handleLinkClick}>
                     <Link href="/admin/withdrawals">
                         <CreditCard />
-                        <span>Withdrawal Requests</span>
+                        <span>Lipa</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="YouTube Videos" isActive={pathname === "/admin/videos/youtube"} onClick={handleLinkClick}>
-                    <Link href="/admin/videos/youtube">
-                        <Youtube />
-                        <span>YouTube Videos</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Tiktok Videos" isActive={pathname === "/admin/videos/tiktok"} onClick={handleLinkClick}>
-                    <Link href="/admin/videos/tiktok">
-                        <Play />
-                        <span>Tiktok Videos</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Facebook Videos" isActive={pathname === "/admin/videos/facebook"} onClick={handleLinkClick}>
-                    <Link href="/admin/videos/facebook">
-                        <Play />
-                        <span>Facebook Videos</span>
+                <SidebarMenuButton asChild tooltip="Videos" isActive={pathname.startsWith("/admin/videos")} onClick={handleLinkClick}>
+                    <Link href="/admin/videos">
+                        <Video />
+                        <span>Videos</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
