@@ -9,9 +9,14 @@ import { Button } from "./ui/button";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Home" },
+];
+
+const earnItem =   { href: "/earn", icon: TrendingUp, label: "Earn" };
+
+const otherNavItems = [
   { href: "/team", icon: Users, label: "Team" },
   { href: "/profile", icon: User, label: "Profile" },
-];
+]
 
 export function BottomNavBar() {
   const pathname = usePathname();
@@ -46,6 +51,24 @@ export function BottomNavBar() {
             <TrendingUp className="h-6 w-6" />
             <span>Earn</span>
           </Button>
+        {otherNavItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={cn(
+                "flex flex-col items-center gap-1 p-2 text-sm font-medium",
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <item.icon className="h-6 w-6" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
     </div>
   );
