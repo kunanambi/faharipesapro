@@ -15,19 +15,23 @@ import { DollarSign } from "lucide-react";
 
 export function AppHeader() {
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-card/80 px-4 backdrop-blur-sm md:px-6">
+    <header className="sticky top-0 z-10 grid h-16 grid-cols-3 items-center border-b bg-card/80 px-4 backdrop-blur-sm md:flex md:justify-between md:px-6">
       <div className="flex items-center gap-2">
         <SidebarTrigger className="md:hidden" />
-        <div className="flex items-center gap-2">
-           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground md:hidden">
+      </div>
+
+      <div className="text-center md:hidden">
+        <div className="flex items-center justify-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <DollarSign className="h-5 w-5" />
           </div>
-          <span className="font-headline text-xl font-bold md:hidden">
+          <span className="font-headline text-xl font-bold">
             Fahari Pesa
           </span>
         </div>
       </div>
-      <div className="flex items-center gap-4">
+
+      <div className="flex items-center justify-end gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
