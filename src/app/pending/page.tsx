@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Wifi, Smartphone } from "lucide-react";
+import { LogOut, MessageCircle, Wifi, Smartphone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
 // A simple placeholder for the Mastercard logo
 const MastercardLogo = () => (
@@ -20,6 +21,7 @@ const MastercardLogo = () => (
 export default function PendingPage() {
     const [user, setUser] = useState<User | null>(null);
     const supabase = createClient();
+    const router = useRouter();
 
     useEffect(() => {
         const getUser = async () => {
@@ -35,6 +37,11 @@ export default function PendingPage() {
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
       whatsappMessage
     )}`;
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.push('/');
+    };
 
 
   return (
@@ -82,12 +89,18 @@ export default function PendingPage() {
             After making payment, click the button below and submit your payment screenshot for account activation.
         </p>
 
-        <Button asChild className="w-full rounded-full py-6 text-lg font-bold bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700">
-             <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="mr-2 h-6 w-6"/>
-                Contact on WhatsApp
-            </Link>
-        </Button>
+        <div className="space-y-4">
+            <Button asChild className="w-full rounded-full py-6 text-lg font-bold bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700">
+                <Link href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="mr-2 h-6 w-6"/>
+                    Contact on WhatsApp
+                </Link>
+            </Button>
+            <Button onClick={handleLogout} variant="outline" className="w-full rounded-full py-6 text-lg font-bold border-muted-foreground text-muted-foreground hover:bg-muted/20 hover:text-white">
+                <LogOut className="mr-2 h-6 w-6"/>
+                Logout
+            </Button>
+        </div>
       </div>
     </div>
   );
