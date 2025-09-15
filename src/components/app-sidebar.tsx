@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -21,6 +22,7 @@ import {
   Settings,
   Users,
   Youtube,
+  Cog
 } from "lucide-react";
 
 const UserNav = () => {
@@ -90,7 +92,7 @@ const UserNav = () => {
       </SidebarMenuItem>
       <SidebarMenuItem>
         <SidebarMenuButton asChild tooltip="Withdrawal" onClick={handleLinkClick}>
-          <Link href="#">
+          <Link href="/withdraw">
             <CreditCard />
             <span>Withdrawal</span>
           </Link>
@@ -100,22 +102,75 @@ const UserNav = () => {
   );
 }
 
-const AdminNav = () => (
-  <>
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        tooltip="Dashboard"
-        isActive={usePathname() === "/admin/dashboard"}
-      >
-        <Link href="/admin/dashboard">
-          <LayoutDashboard />
-          <span>Dashboard</span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  </>
-);
+const AdminNav = () => {
+    const pathname = usePathname();
+    const { setOpenMobile } = useSidebar();
+
+    const handleLinkClick = () => {
+        setOpenMobile(false);
+    }
+
+    return (
+        <>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Dashboard" isActive={pathname === "/admin/dashboard"} onClick={handleLinkClick}>
+                    <Link href="/admin/dashboard">
+                        <LayoutDashboard />
+                        <span>Dashboard</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="User Management" isActive={pathname === "/admin/users"} onClick={handleLinkClick}>
+                    <Link href="/admin/users">
+                        <Users />
+                        <span>User Management</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Withdrawals" isActive={pathname === "/admin/withdrawals"} onClick={handleLinkClick}>
+                    <Link href="/admin/withdrawals">
+                        <CreditCard />
+                        <span>Withdrawal Requests</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="YouTube Videos" isActive={pathname === "/admin/videos/youtube"} onClick={handleLinkClick}>
+                    <Link href="/admin/videos/youtube">
+                        <Youtube />
+                        <span>YouTube Videos</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Tiktok Videos" isActive={pathname === "/admin/videos/tiktok"} onClick={handleLinkClick}>
+                    <Link href="/admin/videos/tiktok">
+                        <Play />
+                        <span>Tiktok Videos</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Facebook Videos" isActive={pathname === "/admin/videos/facebook"} onClick={handleLinkClick}>
+                    <Link href="/admin/videos/facebook">
+                        <Play />
+                        <span>Facebook Videos</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Spin Settings" isActive={pathname === "/admin/spin"} onClick={handleLinkClick}>
+                    <Link href="/admin/spin">
+                        <Cog />
+                        <span>Spin Settings</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+        </>
+    );
+}
 
 const FahariLogo = () => (
     <div className="relative w-8 h-8">
