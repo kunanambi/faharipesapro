@@ -1,17 +1,17 @@
 
 import { ApprovalTable } from "@/components/admin/approval-table";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import type { SupabaseUser } from "@/lib/types";
 
 export default async function UserManagementPage() {
-    const supabase = createClient();
+    const supabase = createAdminClient();
     
     // Fetch all users from auth.users
     const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
 
     if (authError) {
         console.error("Error fetching auth users:", authError);
-        return <div>Error loading users.</div>;
+        return <div>Error loading users. Check server logs for details.</div>;
     }
 
     // Fetch statuses from the public.users table

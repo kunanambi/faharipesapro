@@ -1,10 +1,10 @@
 'use server'
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function approveUser(userId: string) {
-    const supabase = createClient();
+    const supabase = createAdminClient();
 
     // First, update the status in our public 'users' table.
     const { error: publicUserError } = await supabase
