@@ -69,6 +69,17 @@ const AdminNav = () => (
   </>
 );
 
+const FahariLogo = () => (
+    <div className="relative w-8 h-8">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+            <path d="M5 9C5 7.89543 5.89543 7 7 7H17C18.1046 7 19 7.89543 19 9V18C19 19.1046 18.1046 20 17 20H7C5.89543 20 5 19.1046 5 18V9Z" stroke="hsl(var(--sidebar-primary))" strokeWidth="1.5"/>
+            <path d="M9 14H13" stroke="hsl(var(--sidebar-primary))" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M9 11V17" stroke="hsl(var(--sidebar-primary))" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M15 7C15 4.79086 13.2091 3 11 3C8.79086 3 7 4.79086 7 7" stroke="hsl(var(--sidebar-primary))" strokeWidth="1.5"/>
+        </svg>
+    </div>
+);
+
 export function AppSidebar() {
   const pathname = usePathname();
   const isAdmin = pathname.startsWith("/admin");
@@ -77,9 +88,7 @@ export function AppSidebar() {
     <>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <DollarSign className="h-5 w-5" />
-          </div>
+          <FahariLogo />
           <span className="font-headline text-lg font-semibold group-data-[collapsible=icon]:hidden">
             Fahari Pesa
           </span>
