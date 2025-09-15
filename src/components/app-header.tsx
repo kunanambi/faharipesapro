@@ -22,7 +22,7 @@ export function AppHeader() {
            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground md:hidden">
             <DollarSign className="h-5 w-5" />
           </div>
-          <span className="font-headline text-lg font-semibold md:hidden">
+          <span className="font-headline text-xl font-bold md:hidden">
             Fahari Pesa
           </span>
         </div>
