@@ -1,6 +1,11 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { DollarSign, FileUp, MessageCircle, Wifi, Smartphone } from "lucide-react";
+import { MessageCircle, Wifi, Smartphone } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 // A simple placeholder for the Mastercard logo
 const MastercardLogo = () => (
@@ -13,6 +18,18 @@ const MastercardLogo = () => (
 
 
 export default function PendingPage() {
+    const [user, setUser] = useState<User | null>(null);
+    const supabase = createClient();
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data } = await supabase.auth.getUser();
+            setUser(data.user);
+        };
+        getUser();
+    }, [supabase.auth]);
+
+
     const whatsappNumber = "+255768525345";
     const whatsappMessage = "Hi Sir, I have made the payment. Please activate my account.";
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
@@ -32,7 +49,7 @@ export default function PendingPage() {
         </div>
 
         <p className="text-muted-foreground mb-6">
-            Your account is pending approval. Please complete the payment to activate your account.
+            Hi, <span className="font-bold text-primary">{user?.user_metadata.username || "user"}</span>! Your account is pending approval. Please complete the payment to activate your account.
         </p>
 
         <h2 className="font-headline text-2xl font-bold text-white mb-4">Payment Instructions</h2>
