@@ -1,4 +1,5 @@
 
+
 import { ApprovalTable } from "@/components/admin/approval-table";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { SupabaseUser } from "@/lib/types";
@@ -11,7 +12,7 @@ export default async function UserManagementPage() {
 
     if (authError) {
         console.error("Error fetching auth users:", authError);
-        return <div>Error loading users. Check server logs for details.</div>;
+        return <div>Error loading users. Check server logs for details. This might be due to a missing or incorrect SUPABASE_SERVICE_ROLE_KEY in your environment variables.</div>;
     }
 
     // Fetch statuses from the public.users table
