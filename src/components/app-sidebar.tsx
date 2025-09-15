@@ -19,7 +19,6 @@ import {
   Play,
   RefreshCw,
   Settings,
-  User,
   Users,
   Youtube,
 } from "lucide-react";
@@ -34,19 +33,6 @@ const UserNav = () => {
   return (
     <>
       <SidebarMenuItem>
-        <SidebarMenuButton
-          asChild
-          tooltip="Dashboard"
-          isActive={pathname === "/dashboard"}
-          onClick={handleLinkClick}
-        >
-          <Link href="/dashboard">
-            <LayoutDashboard />
-            <span>Dashboard</span>
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
         <SidebarMenuButton asChild tooltip="My Team" isActive={pathname === "/team"} onClick={handleLinkClick}>
           <Link href="/team">
             <Users />
@@ -56,7 +42,7 @@ const UserNav = () => {
       </SidebarMenuItem>
        <SidebarMenuItem>
         <SidebarMenuButton asChild tooltip="Facebook Ads" onClick={handleLinkClick}>
-          <Link href="#">
+          <Link href="/earn">
             <Play />
             <span>Facebook Ads</span>
           </Link>
@@ -64,7 +50,7 @@ const UserNav = () => {
       </SidebarMenuItem>
        <SidebarMenuItem>
         <SidebarMenuButton asChild tooltip="Instagram Ads" onClick={handleLinkClick}>
-          <Link href="#">
+          <Link href="/earn">
             <Play />
             <span>Instagram Ads</span>
           </Link>
@@ -72,7 +58,7 @@ const UserNav = () => {
       </SidebarMenuItem>
       <SidebarMenuItem>
         <SidebarMenuButton asChild tooltip="YouTube Videos" onClick={handleLinkClick}>
-          <Link href="#">
+          <Link href="/earn">
             <Youtube />
             <span>YouTube Videos</span>
           </Link>
@@ -80,7 +66,7 @@ const UserNav = () => {
       </SidebarMenuItem>
       <SidebarMenuItem>
         <SidebarMenuButton asChild tooltip="Tiktok Videos" onClick={handleLinkClick}>
-          <Link href="#">
+          <Link href="/earn">
             <Play />
             <span>Tiktok Videos</span>
           </Link>
@@ -88,7 +74,7 @@ const UserNav = () => {
       </SidebarMenuItem>
        <SidebarMenuItem>
         <SidebarMenuButton asChild tooltip="Play Spin" onClick={handleLinkClick}>
-          <Link href="#">
+          <Link href="/dashboard">
             <RefreshCw />
             <span>Play Spin</span>
           </Link>
@@ -99,14 +85,6 @@ const UserNav = () => {
           <Link href="#">
             <MessageCircle />
             <span>WhatsApp Ads</span>
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="Profile" isActive={pathname === "/profile"} onClick={handleLinkClick}>
-          <Link href="/profile">
-            <User />
-            <span>Profile</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
