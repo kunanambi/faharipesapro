@@ -76,7 +76,7 @@ export function AppSidebar() {
   return (
     <>
       <SidebarHeader>
-        <div className="flex items-center gap-2 justify-center group-data-[collapsible=icon]:justify-start">
+        <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <DollarSign className="h-5 w-5" />
           </div>
