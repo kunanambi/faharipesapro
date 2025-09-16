@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { requestWithdrawal } from "./actions";
 import { toast } from "@/hooks/use-toast";
 
-export default async function WithdrawPage() {
+export default async function WithdrawPage({ searchParams }: { searchParams: { error?: string, success?: string } }) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -55,15 +55,29 @@ export default async function WithdrawPage() {
                     <p className="font-bold text-2xl text-green-400">{formatCurrency(balance)}</p>
                 </div>
             </div>
+            
+            {searchParams.error && (
+                <div className="p-4 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md">
+                    <p className="font-bold">Error</p>
+                    <p>{searchParams.error}</p>
+                </div>
+            )}
+             {searchParams.success && (
+                <div className="p-4 bg-green-500/10 text-green-400 border border-green-500/20 rounded-md">
+                    <p className="font-bold">Success</p>
+                    <p>{searchParams.success}</p>
+                </div>
+            )}
+
             <Card>
                 <CardHeader>
-                    <CardDescription>Minimum withdrawal is 10,000 TZS.</CardDescription>
+                    <CardDescription>Minimum withdrawal is 4,800 TZS. A 6% VAT will be applied.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form action={requestWithdrawal} className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="amount">Amount (TZS)</Label>
-                            <Input id="amount" name="amount" type="number" placeholder="Enter amount" required min="10000" />
+                            <Input id="amount" name="amount" type="number" placeholder="Enter amount" required min="4800" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="phone">Phone Number</Label>

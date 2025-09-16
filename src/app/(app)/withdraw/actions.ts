@@ -10,23 +10,26 @@ export async function requestWithdrawal(formData: FormData) {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-        return { error: 'You must be logged in to make a withdrawal.' };
+        redirect('/?error=You must be logged in to make a withdrawal.');
+        return;
     }
 
     const amount = Number(formData.get('amount') as string);
     const phone = formData.get('phone') as string;
     const network = formData.get('network') as string;
     const registrationName = formData.get('registrationName') as string;
-
+    
     // --- Validation ---
     if (!amount || !phone || !network || !registrationName) {
-        return { error: 'All fields are required.' };
+        redirect('/withdraw?error=All fields are required.');
+        return;
     }
-    if (amount < 10000) {
-        return { error: 'Minimum withdrawal amount is 10,000 TZS.' };
+    if (amount < 4800) {
+        redirect(`/withdraw?error=Minimum withdrawal amount is 4,800 TZS.`);
+        return;
     }
 
-    // --- Check User Balance ---
+    // --- Check User Balance in a single transaction-like operation ---
     const { data: userData, error: userError } = await supabase
         .from('users')
         .select('balance')
@@ -34,27 +37,32 @@ export async function requestWithdrawal(formData: FormData) {
         .single();
 
     if (userError || !userData) {
-        return { error: 'Could not verify your balance.' };
+        redirect('/withdraw?error=Could not verify your balance.');
+        return;
     }
+    
+    const currentBalance = userData.balance || 0;
 
-    if (userData.balance < amount) {
-        redirect('/withdraw?error=Insufficient balance');
+    if (currentBalance < amount) {
+        redirect('/withdraw?error=Insufficient balance to make this withdrawal.');
         return;
     }
 
-    // --- Deduct amount from balance & Create withdrawal request in a transaction ---
-    const newBalance = userData.balance - amount;
-
-    const { data: updateData, error: updateError } = await supabase
+    // --- Deduct amount from balance ---
+    const newBalance = currentBalance - amount;
+    const { error: updateError } = await supabase
         .from('users')
         .update({ balance: newBalance })
         .eq('id', user.id);
 
     if (updateError) {
-        return { error: 'Failed to update balance.' };
+        console.error("Balance update error:", updateError);
+        redirect('/withdraw?error=Failed to update your balance. Please try again.');
+        return;
     }
 
-    const { data, error } = await supabase.from('withdrawals').insert({
+    // --- Create withdrawal request ---
+    const { error: insertError } = await supabase.from('withdrawals').insert({
         user_id: user.id,
         amount,
         phone_number: phone,
@@ -63,13 +71,22 @@ export async function requestWithdrawal(formData: FormData) {
         status: 'pending',
     });
 
-    if (error) {
-        // If this fails, we should ideally roll back the balance update.
-        // For simplicity, we'll log the error. A more robust solution would use a db transaction.
-        console.error("Failed to create withdrawal request, but balance was deducted:", error);
-        return { error: 'Failed to create withdrawal request.' };
+    if (insertError) {
+        // This is a critical failure. The user's balance was deducted, but the withdrawal wasn't logged.
+        // We must refund the user immediately.
+        console.error("CRITICAL: Withdrawal insert failed after balance deduction.", insertError);
+        await supabase
+            .from('users')
+            .update({ balance: currentBalance }) // Revert to the original balance
+            .eq('id', user.id);
+        
+        revalidatePath('/dashboard'); // revalidate to show refunded balance
+        redirect('/withdraw?error=Could not create your withdrawal request. Your balance has been restored. Please try again.');
+        return;
     }
-
+    
+    // Revalidate paths to show updated balance and withdrawal history
+    revalidatePath('/dashboard');
     revalidatePath('/withdraw');
     redirect('/withdraw?success=Withdrawal request submitted successfully!');
 }
