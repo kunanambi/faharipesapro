@@ -30,7 +30,8 @@ export function EditUserDialog({ user, isOpen, onClose, onUserUpdate }: EditUser
   const [username, setUsername] = useState(user.username || "");
   const [phone, setPhone] = useState(user.phone || "");
   const [email, setEmail] = useState(user.email || "");
-  const [newPassword, setNewPassword] = useState("");
+  const [balance, setBalance] = useState(user.balance || 0);
+  const [netProfit, setNetProfit] = useState(user.net_profit || 0);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -43,7 +44,8 @@ export function EditUserDialog({ user, isOpen, onClose, onUserUpdate }: EditUser
       username,
       phone,
       email,
-      newPassword: newPassword || undefined,
+      balance: Number(balance),
+      net_profit: Number(netProfit),
     });
 
     if (result.error) {
@@ -118,17 +120,28 @@ export function EditUserDialog({ user, isOpen, onClose, onUserUpdate }: EditUser
               className="col-span-3"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="password" className="text-right">
-              New Password
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="balance" className="text-right">
+              Balance
             </Label>
             <Input
-              id="password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              id="balance"
+              type="number"
+              value={balance}
+              onChange={(e) => setBalance(Number(e.target.value))}
               className="col-span-3"
-              placeholder="Leave blank to keep unchanged"
+            />
+          </div>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="netProfit" className="text-right">
+              Net Profit
+            </Label>
+            <Input
+              id="netProfit"
+              type="number"
+              value={netProfit}
+              onChange={(e) => setNetProfit(Number(e.target.value))}
+              className="col-span-3"
             />
           </div>
           <DialogFooter>

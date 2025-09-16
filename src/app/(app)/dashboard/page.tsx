@@ -1,3 +1,4 @@
+
 import { OfferCard } from "@/components/dashboard/offer-card";
 import { ReferralCard } from "@/components/dashboard/referral-card";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -10,9 +11,22 @@ import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
   const supabase = createClient();
-  const { data, error } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (error || !data.user) {
+  if (!user) {
+    redirect('/');
+  }
+
+  // Fetch the public user data which contains balance and net_profit
+  const { data: publicUser, error: publicUserError } = await supabase
+    .from('users')
+    .select('username, balance, net_profit')
+    .eq('id', user.id)
+    .single();
+
+  if (publicUserError || !publicUser) {
+    console.error("Error fetching public user data:", publicUserError);
+    // Redirect or show an error, but for now we'll use defaults.
     redirect('/');
   }
 
@@ -20,11 +34,10 @@ export default async function DashboardPage() {
     return new Intl.NumberFormat('en-US').format(value) + ' TZS';
   }
 
-  const user = data.user;
-  const balance = user.user_metadata?.balance || 0;
-  const netProfit = user.user_metadata?.net_profit || 0;
+  const balance = publicUser.balance || 0;
+  const netProfit = publicUser.net_profit || 0;
   const cost = 5200;
-  const username = user.user_metadata?.username || 'User';
+  const username = publicUser.username || 'User';
 
 
   return (

@@ -21,7 +21,6 @@ export async function approveUser(userId: string) {
 }
 
 export async function toggleUserStatus(userId: string, currentStatus: 'approved' | 'pending') {
-    // FIX: Use the standard client. RLS will ensure only an admin can perform this action.
     const supabase = createClient();
     const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
     
@@ -41,25 +40,23 @@ export async function toggleUserStatus(userId: string, currentStatus: 'approved'
     return { data, error: null };
 }
 
-export async function updateUserByAdmin({ userId, fullName, username, phone, email, newPassword }: { 
+export async function updateUserByAdmin({ userId, fullName, username, phone, email, balance, net_profit }: { 
     userId: string,
     fullName: string,
     username: string,
     phone: string,
     email: string,
-    newPassword?: string 
+    balance: number,
+    net_profit: number
 }) {
-    // IMPORTANT: Use the standard client. RLS policies will enforce admin privileges.
     const supabase = createClient();
 
-    // RLS policies now handle authorization, so we don't need a separate admin client.
-    // The `auth.admin` methods are not available on the standard client,
-    // so we cannot update email/password this way. We will update the public.users table.
-    // Password changes must be done by the user themselves for security.
+    // The `auth.admin` methods have been removed. We update the public.users table directly.
+    // RLS policies now handle authorization.
 
     const { data: publicUser, error: publicUserError } = await supabase
         .from('users')
-        .update({ full_name: fullName, username, phone, email })
+        .update({ full_name: fullName, username, phone, email, balance, net_profit })
         .eq('id', userId)
         .select()
         .single();
@@ -70,6 +67,7 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
     }
 
     revalidatePath('/admin/users');
+    revalidatePath(`/dashboard`);
     revalidatePath(`/profile/${username}`);
     return { data: publicUser, error: null };
 }
