@@ -17,7 +17,8 @@ export async function approveWithdrawal(requestId: number) {
     }
 
     revalidatePath('/admin/withdrawals');
-    revalidatePath('/dashboard'); // This was the missing piece
+    revalidatePath('/dashboard');
+    revalidatePath('/withdraw');
     return { success: true };
 }
 
@@ -39,7 +40,7 @@ export async function declineWithdrawal(requestId: number, userId: string, amoun
     // Refund the amount to the user's balance
     const newBalance = (user.balance || 0) + amount;
     const { error: balanceUpdateError } = await supabase
-        p .from('users')
+        .from('users')
         .update({ balance: newBalance })
         .eq('id', userId);
         
@@ -65,7 +66,7 @@ export async function declineWithdrawal(requestId: number, userId: string, amoun
     }
     
     revalidatePath('/admin/withdrawals');
-    revalidatePath('/dashboard'); // Also revalidate on decline to show refunded balance
-    revalidatePath('/withdraw'); // Revalidate user's withdrawal page
+    revalidatePath('/dashboard'); 
+    revalidatePath('/withdraw');
     return { success: true };
 }
