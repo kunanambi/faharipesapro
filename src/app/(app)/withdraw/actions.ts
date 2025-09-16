@@ -29,7 +29,11 @@ export async function requestWithdrawal(formData: FormData) {
         return;
     }
 
-    // --- Check User Balance in a single transaction-like operation ---
+    // --- VAT and Total Deduction Calculation ---
+    const vat = amount * 0.06;
+    const totalDeduction = amount + vat;
+
+    // --- Check User Balance ---
     const { data: userData, error: userError } = await supabase
         .from('users')
         .select('balance')
@@ -43,13 +47,13 @@ export async function requestWithdrawal(formData: FormData) {
     
     const currentBalance = userData.balance || 0;
 
-    if (currentBalance < amount) {
-        redirect('/withdraw?error=Insufficient balance to make this withdrawal.');
+    if (currentBalance < totalDeduction) {
+        redirect(`/withdraw?error=Insufficient balance. You need ${totalDeduction.toLocaleString()} TZS to withdraw ${amount.toLocaleString()} TZS (including VAT).`);
         return;
     }
 
-    // --- Deduct amount from balance ---
-    const newBalance = currentBalance - amount;
+    // --- Deduct total amount from balance ---
+    const newBalance = currentBalance - totalDeduction;
     const { error: updateError } = await supabase
         .from('users')
         .update({ balance: newBalance })
@@ -61,10 +65,10 @@ export async function requestWithdrawal(formData: FormData) {
         return;
     }
 
-    // --- Create withdrawal request ---
+    // --- Create withdrawal request for the original amount ---
     const { error: insertError } = await supabase.from('withdrawals').insert({
         user_id: user.id,
-        amount,
+        amount, // Log the actual amount requested by the user
         phone_number: phone,
         network,
         registration_name: registrationName,

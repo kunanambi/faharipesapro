@@ -71,7 +71,7 @@ export default async function WithdrawPage({ searchParams }: { searchParams: { e
 
             <Card>
                 <CardHeader>
-                    <CardDescription>Minimum withdrawal is 4,800 TZS. A 6% VAT will be applied.</CardDescription>
+                    <CardDescription>Minimum withdrawal is 4,800 TZS. A 6% VAT will be applied to the withdrawal amount.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form action={requestWithdrawal} className="space-y-6">
