@@ -10,13 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Phone, Building, User as UserIcon, History } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// This is placeholder data. We will replace this with real data from Supabase later.
-const withdrawalHistory = [
-    { id: '1', amount: 15000, method: 'M-Pesa', date: '2023-11-10', status: 'Completed' },
-    { id: '2', amount: 20000, method: 'Tigo Pesa', date: '2023-11-05', status: 'Completed' },
-    { id: '3', amount: 10000, method: 'Airtel Money', date: '2023-10-28', status: 'Pending' },
-];
+import { requestWithdrawal } from "./actions";
+import { toast } from "@/hooks/use-toast";
 
 export default async function WithdrawPage() {
     const supabase = createClient();
@@ -25,52 +20,71 @@ export default async function WithdrawPage() {
     if (!user) {
         redirect('/');
     }
-    
-    // We fetch from the public users table which has the correct phone number and username
-    const { data: publicUser } = await supabase.from('users').select('username, phone').eq('id', user.id).single();
 
+    const { data: publicUser } = await supabase.from('users').select('username, phone, balance').eq('id', user.id).single();
+    const { data: withdrawalHistory, error: historyError } = await supabase
+        .from('withdrawals')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+    if (historyError) {
+        console.error("Error fetching withdrawal history:", historyError);
+    }
+    
     const username = publicUser?.username || "user";
     const phone = publicUser?.phone || "";
+    const balance = publicUser?.balance || 0;
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('en-US').format(value) + ' TZS';
+    }
 
     return (
         <div className="space-y-8">
-            <div>
-                <p className="text-muted-foreground">Hi, {username}!</p>
-                <h1 className="font-headline text-3xl font-bold flex items-center gap-2">
-                    <CreditCard className="h-8 w-8 text-primary" />
-                    Request Withdrawal
-                </h1>
+            <div className="flex justify-between items-center">
+                <div>
+                    <p className="text-muted-foreground">Hi, {username}!</p>
+                    <h1 className="font-headline text-3xl font-bold flex items-center gap-2">
+                        <CreditCard className="h-8 w-8 text-primary" />
+                        Request Withdrawal
+                    </h1>
+                </div>
+                 <div className="text-right">
+                    <p className="text-muted-foreground">Available Balance</p>
+                    <p className="font-bold text-2xl text-green-400">{formatCurrency(balance)}</p>
+                </div>
             </div>
             <Card>
                 <CardHeader>
                     <CardDescription>Minimum withdrawal is 10,000 TZS.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form className="space-y-6">
+                    <form action={requestWithdrawal} className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="amount">Amount (TZS)</Label>
-                            <Input id="amount" type="number" placeholder="Enter amount" required min="10000" />
+                            <Input id="amount" name="amount" type="number" placeholder="Enter amount" required min="10000" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="phone">Phone Number</Label>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                <Input id="phone" type="tel" placeholder="0712345678" defaultValue={phone} required className="pl-10" />
+                                <Input id="phone" name="phone" type="tel" placeholder="0712345678" defaultValue={phone} required className="pl-10" />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="method">Network</Label>
                              <div className="relative">
                                 <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                <Select required>
+                                <Select name="network" required>
                                     <SelectTrigger id="method" className="pl-10">
                                         <SelectValue placeholder="Select Network" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="mpesa">M-Pesa</SelectItem>
-                                        <SelectItem value="tigo">Tigo Pesa</SelectItem>
-                                        <SelectItem value="airtel">Airtel Money</SelectItem>
-                                        <SelectItem value="halopesa">HaloPesa</SelectItem>
+                                        <SelectItem value="M-Pesa">M-Pesa</SelectItem>
+                                        <SelectItem value="Tigo Pesa">Tigo Pesa</SelectItem>
+                                        <SelectItem value="Airtel Money">Airtel Money</SelectItem>
+                                        <SelectItem value="HaloPesa">HaloPesa</SelectItem>
                                     </SelectContent>
                                 </Select>
                              </div>
@@ -79,7 +93,7 @@ export default async function WithdrawPage() {
                             <Label htmlFor="reg-name">Registration Name</Label>
                             <div className="relative">
                                 <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                <Input id="reg-name" type="text" placeholder="Enter registered name" required className="pl-10"/>
+                                <Input id="reg-name" name="registrationName" type="text" placeholder="Enter registered name" required className="pl-10"/>
                             </div>
                         </div>
                         <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg">
@@ -108,19 +122,19 @@ export default async function WithdrawPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {withdrawalHistory.length > 0 ? (
+                                {withdrawalHistory && withdrawalHistory.length > 0 ? (
                                     withdrawalHistory.map((req) => (
                                         <TableRow key={req.id}>
-                                            <TableCell className="font-medium">{req.amount.toLocaleString()} TZS</TableCell>
-                                            <TableCell className="hidden sm:table-cell">{req.method}</TableCell>
-                                            <TableCell className="hidden md:table-cell">{req.date}</TableCell>
+                                            <TableCell className="font-medium">{formatCurrency(req.amount)}</TableCell>
+                                            <TableCell className="hidden sm:table-cell">{req.network}</TableCell>
+                                            <TableCell className="hidden md:table-cell">{new Date(req.created_at).toLocaleDateString()}</TableCell>
                                             <TableCell className="text-right">
                                                 <Badge
                                                     className={cn(
-                                                        "text-xs font-bold",
-                                                        req.status === "Completed"
+                                                        "text-xs font-bold capitalize",
+                                                        req.status === "paid"
                                                         ? "bg-green-500/20 text-green-400 border-green-500/30"
-                                                        : req.status === "Pending"
+                                                        : req.status === "pending"
                                                         ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
                                                         : "bg-red-500/20 text-red-400 border-red-500/30"
                                                     )}

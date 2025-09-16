@@ -2,17 +2,29 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { WithdrawalActions } from "./actions-client";
 
-// This is placeholder data. We will replace this with real data from Supabase later.
-const withdrawalRequests = [
-    { id: '1', username: 'johndoe', amount: 5000, method: 'M-Pesa', phone: '0712345678', date: '2023-11-15' },
-    { id: '2', username: 'janesmith', amount: 10000, method: 'Tigo Pesa', phone: '0612345678', date: '2023-11-14' },
-    { id: '3', username: 'mikej', amount: 2500, method: 'Airtel Money', phone: '0788123456', date: '2023-11-13' },
-]
+export default async function AdminWithdrawalsPage() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-export default function AdminWithdrawalsPage() {
+    if (!user) redirect('/');
+
+    const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (userData?.role !== 'admin') redirect('/dashboard');
+
+    const { data: withdrawalRequests, error } = await supabase
+        .from('withdrawals')
+        .select('*, users(username)')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error("Error fetching withdrawal requests:", error);
+    }
+
     return (
         <div className="space-y-6">
             <div>
@@ -40,27 +52,18 @@ export default function AdminWithdrawalsPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {withdrawalRequests.length > 0 ? (
+                                {withdrawalRequests && withdrawalRequests.length > 0 ? (
                                     withdrawalRequests.map((req) => (
                                         <TableRow key={req.id}>
-                                            <TableCell className="font-medium">@{req.username}</TableCell>
+                                            <TableCell className="font-medium">@{req.users.username}</TableCell>
                                             <TableCell>{req.amount.toLocaleString()}</TableCell>
                                             <TableCell>
-                                                <Badge variant="outline">{req.method}</Badge>
+                                                <Badge variant="outline">{req.network}</Badge>
                                             </TableCell>
-                                            <TableCell>{req.phone}</TableCell>
-                                            <TableCell>{req.date}</TableCell>
+                                            <TableCell>{req.phone_number}</TableCell>
+                                            <TableCell>{new Date(req.created_at).toLocaleDateString()}</TableCell>
                                             <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button variant="outline" size="icon" className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700 border-green-200">
-                                                        <Check className="h-4 w-4" />
-                                                        <span className="sr-only">Approve</span>
-                                                    </Button>
-                                                    <Button variant="outline" size="icon" className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200">
-                                                        <X className="h-4 w-4" />
-                                                        <span className="sr-only">Reject</span>
-                                                    </Button>
-                                                </div>
+                                                <WithdrawalActions requestId={req.id} userId={req.user_id} amount={req.amount} />
                                             </TableCell>
                                         </TableRow>
                                     ))
