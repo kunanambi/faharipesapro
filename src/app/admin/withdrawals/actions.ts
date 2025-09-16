@@ -17,6 +17,7 @@ export async function approveWithdrawal(requestId: number) {
     }
 
     revalidatePath('/admin/withdrawals');
+    revalidatePath('/dashboard'); // This was the missing piece
     return { success: true };
 }
 
@@ -38,7 +39,7 @@ export async function declineWithdrawal(requestId: number, userId: string, amoun
     // Refund the amount to the user's balance
     const newBalance = (user.balance || 0) + amount;
     const { error: balanceUpdateError } = await supabase
-        .from('users')
+        p .from('users')
         .update({ balance: newBalance })
         .eq('id', userId);
         
@@ -55,10 +56,16 @@ export async function declineWithdrawal(requestId: number, userId: string, amoun
     if (declineError) {
          // If this fails, we should ideally roll back the balance update.
         console.error("Failed to decline withdrawal, but balance was refunded:", declineError);
-        return { success: false, message: 'Failed to decline withdrawal after refund.' };
+        // Attempt to revert the balance update
+         await supabase
+            .from('users')
+            .update({ balance: user.balance }) // Revert to original
+            .eq('id', userId);
+        return { success: false, message: 'Failed to decline withdrawal after refund. Balance restored.' };
     }
     
     revalidatePath('/admin/withdrawals');
-    revalidatePath('/dashboard');
+    revalidatePath('/dashboard'); // Also revalidate on decline to show refunded balance
+    revalidatePath('/withdraw'); // Revalidate user's withdrawal page
     return { success: true };
 }
