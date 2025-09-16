@@ -21,6 +21,7 @@ export async function approveUser(userId: string) {
 }
 
 export async function toggleUserStatus(userId: string, currentStatus: 'approved' | 'pending') {
+    // FIX: Use the admin client to ensure permissions are sufficient to update another user.
     const supabase = createAdminClient();
     const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
     
