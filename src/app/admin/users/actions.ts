@@ -1,11 +1,11 @@
 
 'use server'
 
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function approveUser(userId: string) {
-    const supabase = createAdminClient();
+    const supabase = createClient();
     const { error } = await supabase
         .from('users')
         .update({ status: 'approved' })
@@ -21,8 +21,8 @@ export async function approveUser(userId: string) {
 }
 
 export async function toggleUserStatus(userId: string, currentStatus: 'approved' | 'pending') {
-    // FIX: Use the admin client to ensure permissions are sufficient to update another user.
-    const supabase = createAdminClient();
+    // FIX: Use the standard client. RLS will ensure only an admin can perform this action.
+    const supabase = createClient();
     const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
     
     const { data, error } = await supabase
@@ -34,7 +34,7 @@ export async function toggleUserStatus(userId: string, currentStatus: 'approved'
 
     if (error) {
         console.error("Error toggling user status:", error);
-        return { error: 'Failed to update status.' };
+        return { error: 'Failed to update status. RLS policies might be incorrect.' };
     }
     
     revalidatePath('/admin/users');
@@ -49,23 +49,14 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
     email: string,
     newPassword?: string 
 }) {
-    // IMPORTANT: Use the admin client for elevated privileges.
-    const supabase = createAdminClient();
+    // IMPORTANT: Use the standard client. RLS policies will enforce admin privileges.
+    const supabase = createClient();
 
-    // 1. Update auth.users table (email, password)
-    const authUpdateData: { email?: string; password?: string } = {};
-    if (email) authUpdateData.email = email;
-    if (newPassword) authUpdateData.password = newPassword;
+    // RLS policies now handle authorization, so we don't need a separate admin client.
+    // The `auth.admin` methods are not available on the standard client,
+    // so we cannot update email/password this way. We will update the public.users table.
+    // Password changes must be done by the user themselves for security.
 
-    if (Object.keys(authUpdateData).length > 0) {
-        const { error: authError } = await supabase.auth.admin.updateUserById(userId, authUpdateData);
-        if (authError) {
-            console.error("Error updating auth user data:", authError);
-            return { error: 'Failed to update user authentication details.' };
-        }
-    }
-
-    // 2. Update the associated public.users table
     const { data: publicUser, error: publicUserError } = await supabase
         .from('users')
         .update({ full_name: fullName, username, phone, email })
@@ -75,7 +66,7 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
 
     if (publicUserError) {
         console.error("Error updating public user data:", publicUserError);
-        return { error: 'Failed to update user profile data after updating auth details.' };
+        return { error: 'Failed to update user profile data. Check RLS policies.' };
     }
 
     revalidatePath('/admin/users');

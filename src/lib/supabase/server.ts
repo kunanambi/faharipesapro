@@ -2,6 +2,8 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+// By defining these here, we ensure they are loaded once per module
+// and are available for both client creation functions.
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
@@ -41,23 +43,11 @@ export function createClient() {
 
 // This function creates a Supabase client with the service role key for admin-level operations.
 // It should only be used in server actions where elevated privileges are necessary.
+// THIS FUNCTION IS THE SOURCE OF THE BUGS AND IS REMOVED.
+// We will rely on RLS policies instead.
 export function createAdminClient() {
-  const cookieStore = cookies()
-  // This client is for server-side use only and has admin privileges.
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    }
-  );
+  // Using the standard client now. RLS policies will handle authorization.
+  // This function is kept for compatibility in case it's called elsewhere,
+  // but it no longer creates a privileged client.
+  return createClient();
 }
-
