@@ -58,9 +58,11 @@ export function AppHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User />
-              Profile
+            <DropdownMenuItem asChild>
+              <Link href="/profile">
+                <User />
+                Profile
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Settings />

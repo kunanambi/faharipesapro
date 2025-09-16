@@ -38,9 +38,9 @@ export default function AdminDashboardPage() {
              <Card className="bg-card border border-border">
                 <CardContent className="pt-6">
                 <Button asChild className="w-full" variant="outline">
-                    <Link href="/dashboard">
+                    <Link href="/profile">
                     <User className="mr-2 h-4 w-4" />
-                    User Panel
+                    My Profile
                     </Link>
                 </Button>
                 </CardContent>
