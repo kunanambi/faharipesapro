@@ -26,6 +26,11 @@ export async function approveWithdrawal(requestId: number) {
 export async function declineWithdrawal(requestId: number, userId: string, amount: number) {
     const supabase = createClient();
 
+    // --- VAT and Total Deduction Calculation ---
+    // This is the total amount that was originally deducted from the user's balance.
+    const vat = amount * 0.06;
+    const totalDeduction = amount + vat;
+
     // Start a transaction to ensure atomicity
     const { data: user, error: userError } = await supabase
         .from('users')
@@ -37,8 +42,8 @@ export async function declineWithdrawal(requestId: number, userId: string, amoun
         return { success: false, message: 'Failed to fetch user for refund.' };
     }
     
-    // Refund the amount to the user's balance
-    const newBalance = (user.balance || 0) + amount;
+    // Refund the TOTAL deducted amount to the user's balance
+    const newBalance = (user.balance || 0) + totalDeduction;
     const { error: balanceUpdateError } = await supabase
         .from('users')
         .update({ balance: newBalance })
