@@ -15,7 +15,7 @@ export default function AdminYouTubeVideosPage() {
                      <CardDescription>
                         Upload a new video to be shown in the YouTube Ads section.
                     </CardDescription>
-                </Header>
+                </CardHeader>
                 <CardContent>
                      <div className="flex flex-col items-center justify-center h-48 text-center border-2 border-dashed rounded-lg">
                         <Upload className="h-12 w-12 text-muted-foreground mb-2" />
