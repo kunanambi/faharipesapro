@@ -65,8 +65,7 @@ export function LoginView() {
         .eq('id', signInData.user.id)
         .single();
 
-      if (userError) {
-        console.error("Error fetching user data:", userError);
+      if (userError || !userData) {
         toast({
           title: "Login Failed",
           description: "Could not verify user status. Please try again.",
@@ -176,4 +175,3 @@ export function LoginView() {
     </div>
   );
 }
-
