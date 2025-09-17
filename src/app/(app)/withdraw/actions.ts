@@ -42,7 +42,7 @@ export async function requestWithdrawal(formData: FormData) {
     const currentBalance = userData.balance || 0;
 
     // 2. Calculate VAT and total deduction
-    const vat = amount * 0.06;
+    const vat = Math.ceil(amount * 0.06);
     const totalDeduction = amount + vat;
 
     // 3. Check for sufficient balance
@@ -72,7 +72,8 @@ export async function requestWithdrawal(formData: FormData) {
             phone_number: phone,
             network: network,
             registration_name: registrationName,
-            status: 'pending'
+            status: 'pending',
+            vat: vat
         });
 
     if (withdrawalError) {
