@@ -33,7 +33,8 @@ export async function requestWithdrawal(formData: FormData) {
 
     if (error) {
         console.error("RPC Error:", error);
-        return redirect(`/withdraw?error=An unexpected database error occurred. Please try again.`);
+        // This will catch unexpected database errors (like function not existing, etc.)
+        return redirect(`/withdraw?error=An unexpected database error occurred: ${error.message}`);
     }
 
     // The RPC returns a JSON object with 'success' and 'message'
@@ -43,7 +44,7 @@ export async function requestWithdrawal(formData: FormData) {
         revalidatePath('/withdraw');
         return redirect(`/withdraw?success=${data.message}`);
     } else {
-        // Display the specific error message from the database function
+        // Display the specific error message from the database function (e.g., "Insufficient balance")
         return redirect(`/withdraw?error=${data.message}`);
     }
 }
