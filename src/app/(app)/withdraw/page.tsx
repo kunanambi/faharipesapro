@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { CreditCard, Phone, Building, User as UserIcon, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { requestWithdrawal } from "./actions";
-import { toast } from "@/hooks/use-toast";
 
 export default async function WithdrawPage({ searchParams }: { searchParams: { error?: string, success?: string } }) {
     const supabase = createClient();
@@ -71,7 +70,7 @@ export default async function WithdrawPage({ searchParams }: { searchParams: { e
 
             <Card>
                 <CardHeader>
-                    <CardDescription>Minimum withdrawal is 4,800 TZS. A 6% VAT will be applied to the withdrawal amount.</CardDescription>
+                    <CardDescription>Minimum withdrawal is 4,800 TZS. A 6% VAT will be applied to the withdrawal amount and deducted from your balance.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form action={requestWithdrawal} className="space-y-6">
