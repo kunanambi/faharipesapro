@@ -1,6 +1,9 @@
 
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useState, useEffect, ChangeEvent } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { redirect, useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,39 +14,103 @@ import { Badge } from "@/components/ui/badge";
 import { CreditCard, Phone, Building, User as UserIcon, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { requestWithdrawal } from "./actions";
+import type { User } from "@supabase/supabase-js";
 
-export default async function WithdrawPage({ searchParams }: { searchParams: { error?: string, success?: string } }) {
+type PublicUser = {
+    username: string;
+    phone: string;
+    balance: number;
+}
+
+type WithdrawalHistory = {
+    id: number;
+    amount: number;
+    network: string;
+    created_at: string;
+    status: 'paid' | 'pending' | 'declined';
+}
+
+export default function WithdrawPage() {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
-    if (!user) {
-        redirect('/');
-    }
-
-    const { data: publicUser } = await supabase.from('users').select('username, phone, balance').eq('id', user.id).single();
-    const { data: withdrawalHistory, error: historyError } = await supabase
-        .from('withdrawals')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-    if (historyError) {
-        console.error("Error fetching withdrawal history:", historyError);
-    }
+    const [user, setUser] = useState<User | null>(null);
+    const [publicUser, setPublicUser] = useState<PublicUser | null>(null);
+    const [withdrawalHistory, setWithdrawalHistory] = useState<WithdrawalHistory[]>([]);
     
-    const username = publicUser?.username || "user";
-    const phone = publicUser?.phone || "";
-    const balance = publicUser?.balance || 0;
+    const [amount, setAmount] = useState<number>(0);
+    const [newBalance, setNewBalance] = useState<number>(0);
+
+    const error = searchParams.get('error');
+    const success = searchParams.get('success');
+
+    useEffect(() => {
+        const getData = async () => {
+            const { data: { user: authUser } } = await supabase.auth.getUser();
+            if (!authUser) {
+                router.push('/');
+                return;
+            }
+            setUser(authUser);
+
+            const { data: publicUserData, error: publicUserError } = await supabase
+                .from('users')
+                .select('username, phone, balance')
+                .eq('id', authUser.id)
+                .single();
+            
+            if (publicUserError || !publicUserData) {
+                console.error("Error fetching public user data:", publicUserError);
+                return;
+            }
+            setPublicUser(publicUserData);
+            setNewBalance(publicUserData.balance || 0);
+
+            const { data: historyData, error: historyError } = await supabase
+                .from('withdrawals')
+                .select('*')
+                .eq('user_id', authUser.id)
+                .order('created_at', { ascending: false });
+
+            if (historyError) {
+                console.error("Error fetching withdrawal history:", historyError);
+            } else {
+                setWithdrawalHistory(historyData as WithdrawalHistory[]);
+            }
+        };
+
+        getData();
+    }, [supabase, router]);
+
+    const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const newAmount = Number(e.target.value);
+        setAmount(newAmount);
+
+        if (publicUser) {
+            if (newAmount > 0) {
+                 const vat = newAmount * 0.06;
+                 const totalDeduction = newAmount + vat;
+                 setNewBalance(publicUser.balance - totalDeduction);
+            } else {
+                setNewBalance(publicUser.balance);
+            }
+        }
+    };
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('en-US').format(value) + ' TZS';
+    };
+
+    if (!publicUser) {
+        return <div>Loading...</div>;
     }
 
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <p className="text-muted-foreground">Hi, {username}!</p>
+                    <p className="text-muted-foreground">Hi, {publicUser?.username || "user"}!</p>
                     <h1 className="font-headline text-3xl font-bold flex items-center gap-2">
                         <CreditCard className="h-8 w-8 text-primary" />
                         Request Withdrawal
@@ -51,20 +118,20 @@ export default async function WithdrawPage({ searchParams }: { searchParams: { e
                 </div>
                  <div className="text-right">
                     <p className="text-muted-foreground">Available Balance</p>
-                    <p className="font-bold text-2xl text-green-400">{formatCurrency(balance)}</p>
+                    <p className="font-bold text-2xl text-green-400">{formatCurrency(newBalance)}</p>
                 </div>
             </div>
             
-            {searchParams.error && (
+            {error && (
                 <div className="p-4 bg-red-500/10 text-red-400 border border-red-500/20 rounded-md">
                     <p className="font-bold">Error</p>
-                    <p>{searchParams.error}</p>
+                    <p>{error}</p>
                 </div>
             )}
-             {searchParams.success && (
+             {success && (
                 <div className="p-4 bg-green-500/10 text-green-400 border border-green-500/20 rounded-md">
                     <p className="font-bold">Success</p>
-                    <p>{searchParams.success}</p>
+                    <p>{success}</p>
                 </div>
             )}
 
@@ -76,13 +143,13 @@ export default async function WithdrawPage({ searchParams }: { searchParams: { e
                     <form action={requestWithdrawal} className="space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="amount">Amount (TZS)</Label>
-                            <Input id="amount" name="amount" type="number" placeholder="Enter amount" required min="4800" />
+                            <Input id="amount" name="amount" type="number" placeholder="Enter amount" required min="4800" onChange={handleAmountChange} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="phone">Phone Number</Label>
                             <div className="relative">
                                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                <Input id="phone" name="phone" type="tel" placeholder="0712345678" defaultValue={phone} required className="pl-10" />
+                                <Input id="phone" name="phone" type="tel" placeholder="0712345678" defaultValue={publicUser?.phone || ""} required className="pl-10" />
                             </div>
                         </div>
                         <div className="space-y-2">
