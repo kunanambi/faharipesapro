@@ -94,3 +94,4 @@ export async function requestWithdrawal(formData: FormData) {
     revalidatePath('/withdraw');
     redirect('/withdraw?success=Withdrawal request submitted successfully!');
 }
+
