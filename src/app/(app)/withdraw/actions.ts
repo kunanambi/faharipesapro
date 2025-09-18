@@ -18,7 +18,7 @@ export async function requestWithdrawal(formData: FormData) {
     const network = formData.get('network') as string;
     const registrationName = formData.get('registrationName') as string;
     
-    // --- Validation (Basic) ---
+    // --- Validation ---
     if (!amount || !phone || !network || !registrationName) {
         return redirect('/withdraw?error=All fields are required.');
     }
@@ -26,9 +26,7 @@ export async function requestWithdrawal(formData: FormData) {
         return redirect('/withdraw?error=Minimum withdrawal is 4,800 TZS.');
     }
     
-    // --- New, Direct Logic based on your suggestion ---
-
-    // 1. Get the user's current balance
+    // --- Get User's Current Balance ---
     const { data: userData, error: userError } = await supabase
         .from('users')
         .select('balance')
@@ -41,19 +39,19 @@ export async function requestWithdrawal(formData: FormData) {
 
     const currentBalance = userData.balance || 0;
 
-    // 2. Calculate VAT and total deduction
+    // --- Calculate VAT and New Balance ---
     const vat = Math.ceil(amount * 0.06);
     const totalDeduction = amount + vat;
 
-    // 3. Check for sufficient balance
     if (currentBalance < totalDeduction) {
         return redirect(`/withdraw?error=Insufficient balance. You need ${totalDeduction} TZS to make this withdrawal.`);
     }
 
-    // 4. Calculate the new balance
     const newBalance = currentBalance - totalDeduction;
 
-    // 5. Update the user's balance in the database
+    // --- Perform Database Operations ---
+    
+    // 1. Update user's balance
     const { error: updateError } = await supabase
         .from('users')
         .update({ balance: newBalance })
@@ -63,7 +61,7 @@ export async function requestWithdrawal(formData: FormData) {
         return redirect(`/withdraw?error=Could not update your balance. Please try again.`);
     }
 
-    // 6. Insert the withdrawal request
+    // 2. Insert the withdrawal request (with the `vat` field included)
     const { error: withdrawalError } = await supabase
         .from('withdrawals')
         .insert({
@@ -73,7 +71,7 @@ export async function requestWithdrawal(formData: FormData) {
             network: network,
             registration_name: registrationName,
             status: 'pending',
-            vat: vat
+            vat: vat // *** THE CRITICAL FIX IS HERE ***
         });
 
     if (withdrawalError) {
@@ -82,7 +80,7 @@ export async function requestWithdrawal(formData: FormData) {
         return redirect(`/withdraw?error=Could not create withdrawal request. Your balance has been restored.`);
     }
 
-    // 7. Revalidate paths to show updated balance everywhere
+    // 3. Revalidate paths to show updated balance
     revalidatePath('/dashboard');
     revalidatePath('/withdraw');
     
