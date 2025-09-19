@@ -49,14 +49,6 @@ const AdminNav = () => {
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Withdrawals" isActive={pathname === "/admin/withdrawals"} onClick={handleLinkClick}>
-                    <Link href="/admin/withdrawals">
-                        <CreditCard />
-                        <span>Lipa</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Videos" isActive={pathname.startsWith("/admin/videos")} onClick={handleLinkClick}>
                     <Link href="/admin/videos">
                         <Video />

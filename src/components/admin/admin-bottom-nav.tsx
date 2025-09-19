@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -7,7 +8,6 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Home" },
-  { href: "/admin/withdrawals", icon: CreditCard, label: "Lipa" },
   { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/videos", icon: Video, label: "Videos" },
 ];
@@ -17,7 +17,7 @@ export function AdminBottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-card/95 backdrop-blur-sm md:hidden">
-      <nav className="flex h-16 items-center justify-around">
+      <nav className="grid h-16 items-center justify-around" style={{ gridTemplateColumns: `repeat(${navItems.length}, 1fr)`}}>
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (

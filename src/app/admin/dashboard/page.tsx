@@ -6,7 +6,6 @@ import Link from "next/link";
 
 const adminLinks = [
     { href: "/admin/users", title: "User Management", icon: <Users /> },
-    { href: "/admin/withdrawals", title: "Withdrawal Requests", icon: <CreditCard /> },
     { href: "/admin/videos/youtube", title: "YouTube Videos", icon: <Youtube /> },
     { href: "/admin/videos/tiktok", title: "Tiktok Videos", icon: <Play /> },
     { href: "/admin/videos/facebook", title: "Facebook Videos", icon: <Play /> },

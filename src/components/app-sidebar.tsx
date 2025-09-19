@@ -91,14 +91,6 @@ const UserNav = () => {
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="Withdrawal" onClick={handleLinkClick}>
-          <Link href="/withdraw">
-            <CreditCard />
-            <span>Withdrawal</span>
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
     </>
   );
 }
@@ -126,14 +118,6 @@ const AdminNav = () => {
                     <Link href="/admin/users">
                         <Users />
                         <span>Users</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Withdrawals" isActive={pathname === "/admin/withdrawals"} onClick={handleLinkClick}>
-                    <Link href="/admin/withdrawals">
-                        <CreditCard />
-                        <span>Lipa</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
