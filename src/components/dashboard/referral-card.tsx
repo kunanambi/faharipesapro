@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Copy } from "lucide-react";
@@ -8,12 +9,22 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from "react";
 
-export function ReferralCard() {
+export function ReferralCard({ referralCode }: { referralCode: string }) {
   const { toast } = useToast();
-  const referralLink = "https://fahari-pesa.com/invite/user";
+  const [referralLink, setReferralLink] = useState("");
+
+  useEffect(() => {
+    // Ensure this runs only on the client
+    if (typeof window !== "undefined") {
+      const link = `${window.location.origin}/register?ref=${referralCode}`;
+      setReferralLink(link);
+    }
+  }, [referralCode]);
 
   const handleCopy = () => {
+    if (!referralLink) return;
     navigator.clipboard.writeText(referralLink);
     toast({
       title: "Copied to clipboard!",

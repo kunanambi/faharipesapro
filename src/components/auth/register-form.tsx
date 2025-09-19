@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -23,7 +24,7 @@ import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters." }),
-  username: z.string().min(2, { message: "Username must be at least 2 characters." }),
+  username: z.string().min(2, { message: "Username must be at least 2 characters." }).refine(s => !s.includes(' '), 'Username cannot contain spaces.'),
   phone: z.string().min(10, { message: "Please enter a valid phone number." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
@@ -33,7 +34,7 @@ const formSchema = z.object({
   }),
 });
 
-export function RegisterForm() {
+export function RegisterForm({ refCode }: { refCode?: string }) {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const supabase = createClient();
@@ -47,7 +48,7 @@ export function RegisterForm() {
       phone: "",
       email: "",
       password: "",
-      invitedBy: "fahariceo", // Example referrer username
+      invitedBy: refCode || "fahariceo", // Use refCode from URL or default
       terms: false,
     },
   });
@@ -63,8 +64,7 @@ export function RegisterForm() {
           full_name: fullName,
           username,
           phone,
-          invited_by: invitedBy,
-          status: 'pending',
+          invited_by: invitedBy, // This will be passed to the trigger
         },
       },
     });
@@ -80,6 +80,8 @@ export function RegisterForm() {
 
     router.push("/pending");
   }
+
+  const invitedByValue = form.watch("invitedBy");
 
   return (
     <Form {...form}>
@@ -159,7 +161,7 @@ export function RegisterForm() {
           )}
         />
         
-        <p className="text-center text-white">Invited By : fahariceo</p>
+        <p className="text-center text-white">Invited By: {invitedByValue}</p>
 
         <FormField
           control={form.control}

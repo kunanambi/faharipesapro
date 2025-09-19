@@ -1,7 +1,8 @@
+
 import Link from "next/link";
 import { RegisterForm } from "./register-form";
 
-export function RegisterView() {
+export function RegisterView({ refCode }: { refCode?: string }) {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden p-4">
       {/* Decorative elements */}
@@ -18,7 +19,7 @@ export function RegisterView() {
           <h2 className="font-headline text-3xl font-bold text-white">Create Account</h2>
         </div>
         
-        <RegisterForm />
+        <RegisterForm refCode={refCode} />
         
         <div className="mt-8 text-center">
             <p className="text-sm text-white">

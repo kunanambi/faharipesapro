@@ -1,5 +1,4 @@
 
-
 export type PublicUser = {
   id: string;
   created_at: string | null;
@@ -9,6 +8,9 @@ export type PublicUser = {
   phone: string | null;
   status: 'pending' | 'approved';
   role: string | null;
+  balance: number | null;
+  invited_by: string | null;
+  referral_code: string | null;
 };
 
 // This represents a user from auth.users joined with our public.users table
