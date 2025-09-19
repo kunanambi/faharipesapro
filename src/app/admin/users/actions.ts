@@ -57,6 +57,47 @@ export async function approveUser(userId: string) {
     return { error: null };
 }
 
+async function revokeReferralBonus(userId: string) {
+    const supabase = createClient();
+
+    // Step 1: Get the user who is being moved to 'pending' to find out who referred them.
+    const { data: demotedUser, error: demotedUserError } = await supabase
+        .from('users')
+        .select('invited_by')
+        .eq('id', userId)
+        .single();
+
+    if (demotedUserError || !demotedUser || !demotedUser.invited_by) {
+        console.log(`User ${userId} was not referred or could not be found. No bonus to revoke.`);
+        return; // No referrer, so nothing to do.
+    }
+
+    // Step 2: Find the referrer and get their balance.
+    const referrerUsername = demotedUser.invited_by;
+    const { data: referrer, error: referrerError } = await supabase
+        .from('users')
+        .select('id, balance')
+        .eq('username', referrerUsername)
+        .single();
+
+    if (referrerError || !referrer) {
+        console.error(`Referrer ${referrerUsername} not found while trying to revoke bonus.`);
+        return; // Referrer not found, can't revoke.
+    }
+
+    // Step 3: Deduct the bonus from the referrer's balance.
+    const newBalance = Math.max(0, (referrer.balance || 0) - REFERRAL_BONUS);
+    const { error: balanceError } = await supabase
+        .from('users')
+        .update({ balance: newBalance })
+        .eq('id', referrer.id);
+
+    if (balanceError) {
+        console.error("Error revoking referral bonus:", balanceError);
+    }
+}
+
+
 export async function toggleUserStatus(userId: string, currentStatus: 'approved' | 'pending') {
     const supabase = createClient();
     const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
@@ -65,19 +106,25 @@ export async function toggleUserStatus(userId: string, currentStatus: 'approved'
         .from('users')
         .update({ status: newStatus })
         .eq('id', userId)
-        .select()
+        .select('id')
         .single();
 
     if (error) {
         console.error("Error toggling user status:", error);
-        return { error: 'Failed to update status. RLS policies might be incorrect.' };
+        return { error: 'Failed to update status.' };
     }
 
     if (newStatus === 'approved') {
-         await approveUser(userId); // Use the same approval logic to grant bonus
+         // If moving to approved, grant the bonus.
+         await approveUser(userId);
+    } else {
+        // If moving to pending, revoke the bonus.
+        await revokeReferralBonus(userId);
     }
     
     revalidatePath('/admin/users');
+    revalidatePath('/team'); // Revalidate team page to update earnings/status
+    revalidatePath('/dashboard'); // Revalidate dashboard to update balance
     return { data, error: null };
 }
 
@@ -108,3 +155,4 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
     revalidatePath(`/profile/${username}`);
     return { data: publicUser, error: null };
 }
+
