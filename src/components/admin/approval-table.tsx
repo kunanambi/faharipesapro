@@ -102,6 +102,7 @@ export function ApprovalTable({ users: initialUsers, onUserApproved }: ApprovalT
                           <div>
                             <div className="font-bold">{user.full_name}</div>
                             <div className="text-sm text-muted-foreground">@{user.username}</div>
+                            <div className="text-sm text-muted-foreground">{user.phone}</div>
                           </div>
                         </div>
                       </TableCell>
