@@ -40,14 +40,3 @@ export function createClient() {
     }
   )
 }
-
-// This function creates a Supabase client with the service role key for admin-level operations.
-// It should only be used in server actions where elevated privileges are necessary.
-// THIS FUNCTION IS THE SOURCE OF THE BUGS AND IS REMOVED.
-// We will rely on RLS policies instead.
-export function createAdminClient() {
-  // Using the standard client now. RLS policies will handle authorization.
-  // This function is kept for compatibility in case it's called elsewhere,
-  // but it no longer creates a privileged client.
-  return createClient();
-}

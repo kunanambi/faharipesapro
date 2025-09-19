@@ -24,16 +24,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import type { PublicUser } from "@/lib/types";
 import { approveUser } from "@/app/admin/users/actions";
 
-export function ApprovalTable({ users: initialUsers }: { users: PublicUser[] }) {
+interface ApprovalTableProps {
+  users: PublicUser[];
+  onUserApproved: (userId: string) => void;
+}
+
+export function ApprovalTable({ users: initialUsers, onUserApproved }: ApprovalTableProps) {
   const [users, setUsers] = useState<PublicUser[]>(initialUsers);
   const { toast } = useToast();
 
   const handleApprove = async (userId: string) => {
-    const originalUsers = [...users];
     const userToApprove = users.find(u => u.id === userId);
-
-    // Optimistically update the UI
-    setUsers(users.map(u => u.id === userId ? {...u, status: 'approved'} : u));
 
     const { error } = await approveUser(userId);
 
@@ -43,29 +44,28 @@ export function ApprovalTable({ users: initialUsers }: { users: PublicUser[] }) 
         description: error,
         variant: "destructive",
       });
-      // Revert UI change on error
-      setUsers(originalUsers);
     } else {
       toast({
         title: "User Approved",
         description: `${userToApprove?.full_name} has been approved.`,
       });
+      // Inform parent component to update state
+      onUserApproved(userId);
+      // Also update local state to remove the user from the pending list
+      setUsers(currentUsers => currentUsers.filter(u => u.id !== userId));
     }
   };
   
   const handleReject = (userId: string) => {
-    // We can implement rejection logic later
      const user = users.find(u => u.id === userId);
-     // For now, just remove from view.
      setUsers(users.filter((user) => user.id !== userId));
      toast({
        title: `User Rejected`,
-       description: `${user?.full_name} has been rejected.`,
+       description: `${user?.full_name} has been rejected. (This is a UI-only action for now)`,
+       variant: "destructive"
      });
   }
   
-  const pendingUsers = users.filter(user => user.status === 'pending');
-
   return (
     <Card>
       <CardHeader>
@@ -86,8 +86,8 @@ export function ApprovalTable({ users: initialUsers }: { users: PublicUser[] }) 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pendingUsers.length > 0 ? (
-                pendingUsers.map((user) => {
+              {users.length > 0 ? (
+                users.map((user) => {
                   const registrationDate = user.created_at ? new Date(user.created_at) : null;
                   const isValidDate = registrationDate && !isNaN(registrationDate.getTime());
 

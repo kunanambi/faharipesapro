@@ -9,6 +9,7 @@ import { Users, UserCheck, Clock, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { UserList } from "@/components/admin/user-list";
 import { useToast } from '@/hooks/use-toast';
+import { ApprovalTable } from '@/components/admin/approval-table';
 
 export default function UserManagementPage() {
     const supabase = createClient();
@@ -20,7 +21,7 @@ export default function UserManagementPage() {
     useEffect(() => {
         const fetchUsers = async () => {
             setLoading(true);
-            // Reverted from RPC to a direct select, as RLS is being disabled for now.
+            // RLS is disabled, so a direct select will work.
             const { data, error } = await supabase.from('users').select('*');
 
             if (error) {
@@ -63,11 +64,21 @@ export default function UserManagementPage() {
     const handleStatusToggle = (userId: string, newStatus: 'approved' | 'pending') => {
         setUsers(prevUsers => prevUsers.map(u => u.id === userId ? { ...u, status: newStatus } : u));
     }
-
+    
+    const onUserApproved = (approvedUserId: string) => {
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            user.id === approvedUserId ? { ...user, status: 'approved' } : user
+          )
+        );
+    };
 
     if (loading) {
         return <div>Loading users...</div>
     }
+    
+    const pendingUsers = users.filter(user => user.status === 'pending');
+    const approvedUsers = filteredUsers.filter(user => user.status === 'approved');
 
     return (
         <div className="space-y-6">
@@ -81,19 +92,21 @@ export default function UserManagementPage() {
                 <StatCard title="Approved" value={stats.approved.toString()} icon={<UserCheck />} cardClassName="bg-green-600/90 text-white" description="" />
                 <StatCard title="Pending" value={stats.pending.toString()} icon={<Clock />} cardClassName="bg-yellow-600/90 text-white" description="" />
             </div>
+            
+            <ApprovalTable users={pendingUsers} onUserApproved={onUserApproved} />
 
             <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                     type="search"
-                    placeholder="Search by name, username, email, or phone..."
+                    placeholder="Search approved users by name, username, email, or phone..."
                     className="pl-10"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
             
-            <UserList users={filteredUsers} onUserUpdate={handleUserUpdate} onStatusToggle={handleStatusToggle} />
+            <UserList users={approvedUsers} onUserUpdate={handleUserUpdate} onStatusToggle={handleStatusToggle} />
 
         </div>
     )
