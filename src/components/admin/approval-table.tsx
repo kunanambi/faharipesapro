@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from "react";
@@ -80,8 +81,7 @@ export function ApprovalTable({ users: initialUsers, onUserApproved }: ApprovalT
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
-                <TableHead className="hidden md:table-cell">Email</TableHead>
-                <TableHead className="hidden lg:table-cell">Registered</TableHead>
+                <TableHead className="hidden md:table-cell">Registered</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -99,14 +99,13 @@ export function ApprovalTable({ users: initialUsers, onUserApproved }: ApprovalT
                             <AvatarImage src={`https://i.pravatar.cc/40?u=${user.id}`} />
                             <AvatarFallback>{user.full_name?.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <div className="font-medium">
-                            {user.full_name}
-                            <div className="text-sm text-muted-foreground hidden sm:block">@{user.username}</div>
+                          <div>
+                            <div className="font-bold">{user.full_name}</div>
+                            <div className="text-sm text-muted-foreground">@{user.username}</div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="hidden md:table-cell">{user.email}</TableCell>
-                      <TableCell className="hidden lg:table-cell">
+                      <TableCell className="hidden md:table-cell">
                          {isValidDate ? new Date(user.created_at!).toLocaleDateString() : "N/A"}
                       </TableCell>
                       <TableCell className="text-right">
@@ -136,7 +135,7 @@ export function ApprovalTable({ users: initialUsers, onUserApproved }: ApprovalT
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
+                  <TableCell colSpan={3} className="h-24 text-center">
                     No pending approvals.
                   </TableCell>
                 </TableRow>
