@@ -17,17 +17,22 @@ export default async function DashboardPage() {
     redirect('/');
   }
 
-  // Fetch the public user data which contains balance and net_profit
+  // Fetch the public user data which contains balance
   const { data: publicUser, error: publicUserError } = await supabase
     .from('users')
-    .select('username, balance')
+    .select('username, balance, status')
     .eq('id', user.id)
     .single();
 
   if (publicUserError || !publicUser) {
     console.error("Error fetching public user data:", publicUserError);
-    // Redirect or show an error, but for now we'll use defaults.
-    redirect('/');
+    // If the user profile isn't found, it might be a sync delay or an error.
+    // Redirecting to pending is safer than logging them out.
+    redirect('/pending');
+  }
+  
+  if (publicUser.status === 'pending') {
+    redirect('/pending');
   }
 
   const formatCurrency = (value: number) => {
@@ -69,7 +74,7 @@ export default async function DashboardPage() {
           description=""
         />
 
-        <ReferralCard />
+        <ReferralCard referralCode={username!} />
 
         <Card className="bg-card border border-border">
             <CardContent className="pt-6">
