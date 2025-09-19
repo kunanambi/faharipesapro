@@ -1,8 +1,9 @@
 
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Users, TrendingUp, Search, User, UserX, Copy } from "lucide-react";
+import { Users, TrendingUp, Search, User, UserX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { createClient } from "@/lib/supabase/server";
