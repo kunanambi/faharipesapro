@@ -1,8 +1,7 @@
 
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -58,18 +57,29 @@ export function LoginView() {
     }
 
     if (signInData.user) {
-      // NOTE: The RLS check for user status was causing persistent login failures.
-      // As a "maamuzi magumu" (hard decision), we are now bypassing this check.
-      // If authentication is successful, we redirect directly to the dashboard.
-      // This assumes that if a user can log in, they should be taken to the app.
-      // The role/status check can be re-introduced later if a stable RLS policy is found.
+        // Fetch the user's profile to check their role.
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', signInData.user.id)
+            .single();
 
-      // For admin users, we can try to check their email. This is less secure than RLS but will work for now.
-      if (signInData.user.email?.endsWith('@fahari.com')) {
-         router.push('/admin/dashboard');
-      } else {
-        router.push("/dashboard");
-      }
+        if (userError) {
+             toast({
+                title: "Login Failed",
+                description: "Could not retrieve user role from database.",
+                variant: "destructive",
+            });
+            await supabase.auth.signOut(); // Log out the user if we can't get their role
+            return;
+        }
+
+        // Check the role and redirect accordingly.
+        if (userData?.role === 'admin') {
+            router.push('/admin/dashboard');
+        } else {
+            router.push('/dashboard');
+        }
     }
   }
 
