@@ -66,9 +66,10 @@ export function LoginView() {
         .single();
 
       if (userError || !userData) {
+        console.error("Error fetching user data:", userError);
         toast({
           title: "Login Failed",
-          description: "Could not verify user status. Please try again.",
+          description: "Could not verify user status. There might be a database permission issue (RLS).",
           variant: "destructive"
         });
         await supabase.auth.signOut(); // Log them out
