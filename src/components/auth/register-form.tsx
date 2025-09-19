@@ -65,8 +65,6 @@ export function RegisterForm() {
           phone,
           invited_by: invitedBy,
           status: 'pending',
-          balance: 0,
-          net_profit: 0
         },
       },
     });

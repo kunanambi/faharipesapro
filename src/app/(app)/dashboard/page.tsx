@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   // Fetch the public user data which contains balance and net_profit
   const { data: publicUser, error: publicUserError } = await supabase
     .from('users')
-    .select('username, balance, net_profit')
+    .select('username')
     .eq('id', user.id)
     .single();
 
@@ -34,8 +34,8 @@ export default async function DashboardPage() {
     return new Intl.NumberFormat('en-US').format(value) + ' TZS';
   }
 
-  const balance = publicUser.balance || 0;
-  const netProfit = publicUser.net_profit || 0;
+  const balance = 0;
+  const netProfit = 0;
   const cost = 5200;
   const username = publicUser.username || 'User';
 

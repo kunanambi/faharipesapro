@@ -40,14 +40,12 @@ export async function toggleUserStatus(userId: string, currentStatus: 'approved'
     return { data, error: null };
 }
 
-export async function updateUserByAdmin({ userId, fullName, username, phone, email, balance, net_profit }: { 
+export async function updateUserByAdmin({ userId, fullName, username, phone, email }: { 
     userId: string,
     fullName: string,
     username: string,
     phone: string,
     email: string,
-    balance: number,
-    net_profit: number
 }) {
     const supabase = createClient();
 
@@ -56,7 +54,7 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
 
     const { data: publicUser, error: publicUserError } = await supabase
         .from('users')
-        .update({ full_name: fullName, username, phone, email, balance, net_profit })
+        .update({ full_name: fullName, username, phone, email })
         .eq('id', userId)
         .select()
         .single();

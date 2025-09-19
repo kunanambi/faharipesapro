@@ -19,7 +19,6 @@ import type { User } from "@supabase/supabase-js";
 type PublicUser = {
     username: string;
     phone: string;
-    balance: number;
 }
 
 type WithdrawalHistory = {
@@ -56,7 +55,7 @@ export default function WithdrawPage() {
 
             const { data: publicUserData, error: publicUserError } = await supabase
                 .from('users')
-                .select('username, phone, balance')
+                .select('username, phone')
                 .eq('id', authUser.id)
                 .single();
             
@@ -65,7 +64,7 @@ export default function WithdrawPage() {
                 return;
             }
             setPublicUser(publicUserData);
-            setNewBalance(publicUserData.balance || 0);
+            setNewBalance(0); // Default to 0
 
             const { data: historyData, error: historyError } = await supabase
                 .from('withdrawals')
@@ -86,16 +85,6 @@ export default function WithdrawPage() {
     const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
         const newAmount = Number(e.target.value);
         setAmount(newAmount);
-
-        if (publicUser) {
-            if (newAmount > 0) {
-                 const vat = newAmount * 0.06;
-                 const totalDeduction = newAmount + vat;
-                 setNewBalance(publicUser.balance - totalDeduction);
-            } else {
-                setNewBalance(publicUser.balance);
-            }
-        }
     };
 
     const formatCurrency = (value: number) => {
@@ -137,7 +126,7 @@ export default function WithdrawPage() {
 
             <Card>
                 <CardHeader>
-                    <CardDescription>Minimum withdrawal is 4,800 TZS. A 6% VAT will be applied to the withdrawal amount and deducted from your balance.</CardDescription>
+                    <CardDescription>Minimum withdrawal is 4,800 TZS. A 6% VAT will be applied to the withdrawal amount.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form action={requestWithdrawal} className="space-y-6">
