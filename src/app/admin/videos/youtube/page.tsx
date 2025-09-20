@@ -1,8 +1,60 @@
 
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { addYouTubeVideo, getYouTubeVideos } from "./actions";
+import type { YouTubeVideo } from "@/lib/types";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ExternalLink } from "lucide-react";
+
+type Inputs = {
+  title: string;
+  url: string;
+  reward_amount: number;
+};
 
 export default function AdminYouTubeVideosPage() {
+    const { toast } = useToast();
+    const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<Inputs>();
+
+    const fetchVideos = async () => {
+        setLoading(true);
+        const fetchedVideos = await getYouTubeVideos();
+        setVideos(fetchedVideos);
+        setLoading(false);
+    }
+
+    useEffect(() => {
+        fetchVideos();
+    }, []);
+
+    const onSubmit: SubmitHandler<Inputs> = async (data) => {
+        const result = await addYouTubeVideo(data);
+        if (result.error) {
+            toast({
+                title: "Error adding video",
+                description: result.error,
+                variant: "destructive",
+            });
+        } else {
+            toast({
+                title: "Video Added",
+                description: "The new YouTube video has been added successfully.",
+            });
+            reset();
+            fetchVideos(); // Refresh the list
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -11,15 +63,83 @@ export default function AdminYouTubeVideosPage() {
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Upload Video</CardTitle>
+                    <CardTitle>Add New YouTube Video</CardTitle>
                      <CardDescription>
-                        Upload a new video to be shown in the YouTube Ads section.
+                        Enter the details for the new video.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                     <div className="flex flex-col items-center justify-center h-48 text-center border-2 border-dashed rounded-lg">
-                        <Upload className="h-12 w-12 text-muted-foreground mb-2" />
-                        <p className="text-muted-foreground">Drag and drop videos here, or click to browse.</p>
+                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="title">Video Title</Label>
+                            <Input id="title" placeholder="e.g., 'Official Music Video'" {...register("title", { required: true })} />
+                        </div>
+                         <div className="grid gap-2">
+                            <Label htmlFor="url">YouTube Video URL</Label>
+                            <Input id="url" placeholder="https://www.youtube.com/watch?v=..." {...register("url", { required: true })} />
+                        </div>
+                         <div className="grid gap-2">
+                            <Label htmlFor="reward_amount">Reward Amount (TZS)</Label>
+                            <Input id="reward_amount" type="number" placeholder="e.g., 100" {...register("reward_amount", { required: true, valueAsNumber: true })} />
+                        </div>
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Adding..." : "Add Video"}
+                        </Button>
+                     </form>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Existing YouTube Videos</CardTitle>
+                    <CardDescription>
+                        A list of all YouTube videos currently in the system.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="rounded-md border">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Title</TableHead>
+                                    <TableHead>Reward</TableHead>
+                                    <TableHead className="hidden md:table-cell">Status</TableHead>
+                                    <TableHead className="text-right">URL</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {loading ? (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="h-24 text-center">Loading...</TableCell>
+                                    </TableRow>
+                                ) : videos.length > 0 ? (
+                                    videos.map((video) => (
+                                        <TableRow key={video.id}>
+                                            <TableCell className="font-medium">{video.title}</TableCell>
+                                            <TableCell>{video.reward_amount} TZS</TableCell>
+                                            <TableCell className="hidden md:table-cell">
+                                                <Badge variant={video.is_active ? "default" : "secondary"}>
+                                                    {video.is_active ? "Active" : "Inactive"}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" asChild>
+                                                    <a href={video.url} target="_blank" rel="noopener noreferrer">
+                                                        <ExternalLink className="h-4 w-4" />
+                                                    </a>
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="h-24 text-center">
+                                            No YouTube videos found.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
                     </div>
                 </CardContent>
             </Card>

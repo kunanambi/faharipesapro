@@ -1,4 +1,5 @@
 
+
 export type PublicUser = {
   id: string;
   created_at: string | null;
@@ -25,4 +26,14 @@ export type SupabaseUser = {
   };
   // This status comes from our public.users table
   dbStatus: 'pending' | 'approved' | 'rejected';
+};
+
+export type YouTubeVideo = {
+    id: string;
+    created_at: string;
+    title: string;
+    ad_type: 'youtube';
+    url: string;
+    reward_amount: number;
+    is_active: boolean;
 };
