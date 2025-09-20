@@ -1,26 +1,28 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
-import { YouTubeVideo } from "@/lib/types";
-import { Play, Youtube, VideoOff, Tv } from "lucide-react";
+import { YouTubeVideo } from "@/lib/types"; // Assuming this type is generic enough
+import { PlayCircle, Calendar, Tag } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { VideoOff } from 'lucide-react';
 
 
 async function getUnwatchedAds(userId: string) {
     const supabase = createClient();
     
-    // 1. Get all active ads
     const { data: allAds, error: adsError } = await supabase
         .from('ads')
         .select('*')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
     if (adsError) {
         console.error("Error fetching ads:", adsError);
         return [];
     }
 
-    // 2. Get all ads watched by the user
     const { data: watchedAds, error: watchedError } = await supabase
         .from('user_watched_ads')
         .select('ad_id')
@@ -28,15 +30,14 @@ async function getUnwatchedAds(userId: string) {
         
     if (watchedError) {
         console.error("Error fetching watched ads:", watchedError);
-        return allAds; // Return all ads if watched history fails
+        return allAds; 
     }
 
     const watchedAdIds = new Set(watchedAds.map(ad => ad.ad_id));
 
-    // 3. Filter out watched ads
     const unwatchedAds = allAds.filter(ad => !watchedAdIds.has(ad.id));
     
-    return unwatchedAds as YouTubeVideo[]; // Assuming all ads are YouTube for now
+    return unwatchedAds as YouTubeVideo[]; 
 }
 
 export default async function EarnPage() {
@@ -49,15 +50,9 @@ export default async function EarnPage() {
 
     const earnOptions = await getUnwatchedAds(user.id);
     
-    const getIcon = (adType: string) => {
-        switch(adType) {
-            case 'youtube': return <Youtube className="h-8 w-8" />;
-            case 'tiktok': return <Tv className="h-8 w-8" />;
-            case 'facebook': return <Play className="h-8 w-8" />;
-            default: return <Play className="h-8 w-8" />;
-        }
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('en-US').format(value) + ' TZS';
     }
-
 
     return (
         <div className="space-y-6">
@@ -66,20 +61,34 @@ export default async function EarnPage() {
                 <p className="text-muted-foreground">Watch videos and ads to earn money.</p>
             </div>
             {earnOptions.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-4">
                     {earnOptions.map(option => (
-                        <Link href={`/earn/watch/${option.id}`} key={option.id}>
-                            <Card className="hover:bg-accent hover:text-accent-foreground transition-colors h-full">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">{option.title}</CardTitle>
-                                    {getIcon(option.ad_type)}
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">+{option.reward_amount} TZS</div>
-                                    <p className="text-xs text-muted-foreground">per video</p>
-                                </CardContent>
-                            </Card>
-                        </Link>
+                        <Card key={option.id} className="bg-card border border-border/50">
+                            <CardContent className="p-4 space-y-3">
+                                <h3 className="font-bold text-lg">{option.title}</h3>
+                                <div className="flex items-center text-sm text-muted-foreground gap-4">
+                                     <div className="flex items-center gap-1">
+                                        <Tag className="h-4 w-4" />
+                                        <span>{option.ad_type}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Calendar className="h-4 w-4" />
+                                        <span>{new Date(option.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                            <CardFooter className="flex items-center justify-between p-4 pt-0">
+                                <Button variant="secondary" className="bg-blue-600 hover:bg-blue-700 text-white font-bold" disabled>
+                                    {formatCurrency(option.reward_amount)}
+                                </Button>
+                                <Button asChild className="bg-red-600 hover:bg-red-700 text-white font-bold">
+                                    <Link href={`/earn/watch/${option.id}`}>
+                                        <PlayCircle className="mr-2 h-5 w-5"/>
+                                        PLAY
+                                    </Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
                     ))}
                 </div>
             ) : (
