@@ -25,7 +25,7 @@ import {
   Cog,
   Video,
 } from "lucide-react";
-import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
+import { FaInstagram, FaTiktok, FaFacebook, FaWhatsapp } from "react-icons/fa";
 
 const UserNav = () => {
     const { setOpenMobile } = useSidebar();
@@ -85,9 +85,9 @@ const UserNav = () => {
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="WhatsApp Ads" onClick={handleLinkClick}>
-          <Link href="#">
-            <MessageCircle />
+        <SidebarMenuButton asChild tooltip="WhatsApp Ads" isActive={pathname === '/earn/whatsapp'} onClick={handleLinkClick}>
+          <Link href="/earn/whatsapp">
+            <FaWhatsapp />
             <span>WhatsApp Ads</span>
           </Link>
         </SidebarMenuButton>

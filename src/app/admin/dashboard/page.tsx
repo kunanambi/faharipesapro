@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, Users, Play, Youtube, Cog, Shield, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { FaInstagram } from "react-icons/fa";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 
 const adminLinks = [
     { href: "/admin/users", title: "User Management", icon: <Users /> },
@@ -11,6 +11,7 @@ const adminLinks = [
     { href: "/admin/videos/tiktok", title: "Tiktok Videos", icon: <Play /> },
     { href: "/admin/videos/facebook", title: "Facebook Videos", icon: <Play /> },
     { href: "/admin/videos/instagram", title: "Instagram Ads", icon: <FaInstagram /> },
+    { href: "/admin/videos/whatsapp", title: "WhatsApp Ads", icon: <FaWhatsapp /> },
     { href: "/admin/spin", title: "Spin Settings", icon: <Cog /> },
 ]
 

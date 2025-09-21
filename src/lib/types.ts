@@ -32,7 +32,7 @@ export type Ad = {
     id: string;
     created_at: string;
     title: string;
-    ad_type: 'youtube' | 'tiktok' | 'facebook' | 'instagram';
+    ad_type: 'youtube' | 'tiktok' | 'facebook' | 'instagram' | 'whatsapp';
     url: string;
     reward_amount: number;
     is_active: boolean;

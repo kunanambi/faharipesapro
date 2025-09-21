@@ -2,13 +2,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Youtube, Play } from "lucide-react";
 import Link from "next/link";
-import { FaInstagram } from "react-icons/fa";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 
 const videoSections = [
     { href: "/admin/videos/youtube", title: "YouTube Videos", icon: <Youtube /> },
     { href: "/admin/videos/tiktok", title: "Tiktok Videos", icon: <Play /> },
     { href: "/admin/videos/facebook", title: "Facebook Videos", icon: <Play /> },
     { href: "/admin/videos/instagram", title: "Instagram Ads", icon: <FaInstagram /> },
+    { href: "/admin/videos/whatsapp", title: "WhatsApp Ads", icon: <FaWhatsapp /> },
 ]
 
 export default function AdminVideosPage() {
