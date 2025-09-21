@@ -17,10 +17,10 @@ export default async function DashboardPage() {
     redirect('/');
   }
 
-  // Fetch the public user data which contains balance
+  // Fetch the public user data which contains balance, status, and role
   const { data: publicUser, error: publicUserError } = await supabase
     .from('users')
-    .select('username, balance, status')
+    .select('username, balance, status, role')
     .eq('id', user.id)
     .single();
 
@@ -37,6 +37,11 @@ export default async function DashboardPage() {
     // Redirecting to pending is a safe state.
     redirect('/pending');
     return;
+  }
+  
+  // REDIRECTION LOGIC: Check the user's role
+  if (publicUser.role === 'admin') {
+      redirect('/admin/dashboard');
   }
   
   if (publicUser.status === 'pending') {

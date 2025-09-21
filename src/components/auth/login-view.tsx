@@ -56,8 +56,8 @@ export function LoginView() {
       return;
     }
 
-    // Redirect all users to the dashboard. The dashboard page itself
-    // will handle logic for pending users or other states.
+    // Redirect ALL users to the dashboard. The dashboard page itself
+    // will handle logic for pending users or role-based redirection (admin/user).
     router.push('/dashboard');
     router.refresh(); // Ensure the page reloads to get new auth state on server
   }
