@@ -18,11 +18,11 @@ export async function addWhatsAppAd(formData: FormData) {
 
     // 1. Upload file to Supabase Storage
     const fileExt = mediaFile.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `public/${fileName}`;
+    const fileName = `whatsapp/${Date.now()}.${fileExt}`; // Added a folder for organization
+    const filePath = fileName;
 
     const { error: uploadError } = await supabase.storage
-        .from('whatsapp_ads')
+        .from('public') // CORRECTED BUCKET NAME
         .upload(filePath, mediaFile);
 
     if (uploadError) {
@@ -32,7 +32,7 @@ export async function addWhatsAppAd(formData: FormData) {
 
     // 2. Get the public URL of the uploaded file
     const { data: urlData } = supabase.storage
-        .from('whatsapp_ads')
+        .from('public') // CORRECTED BUCKET NAME
         .getPublicUrl(filePath);
 
     if (!urlData) {
@@ -57,7 +57,7 @@ export async function addWhatsAppAd(formData: FormData) {
     if (insertError) {
         console.error(`Error adding WhatsApp ad:`, insertError);
         // Optionally, delete the uploaded file if the DB insert fails
-        await supabase.storage.from('whatsapp_ads').remove([filePath]);
+        await supabase.storage.from('public').remove([filePath]);
         return { error: insertError.message };
     }
 
@@ -65,4 +65,3 @@ export async function addWhatsAppAd(formData: FormData) {
     revalidatePath('/earn/whatsapp');
     return { data, error: null };
 }
-
