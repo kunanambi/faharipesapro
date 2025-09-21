@@ -24,11 +24,19 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single();
 
-  if (publicUserError || !publicUser) {
+  // If the profile fetch fails OR if the user profile doesn't exist yet (common after sign-up)
+  if (publicUserError && publicUserError.code !== 'PGRST116') { // PGRST116 means no rows found
     console.error("Error fetching public user data:", publicUserError);
-    // If the user profile isn't found, it might be a sync delay or an error.
-    // Redirecting to pending is safer than logging them out.
+    // An unexpected error occurred, redirecting to login is a safe fallback.
+    redirect('/');
+    return;
+  }
+  
+  if (!publicUser) {
+    // This can happen if the public.users record hasn't been created yet by the trigger.
+    // Redirecting to pending is a safe state.
     redirect('/pending');
+    return;
   }
   
   if (publicUser.status === 'pending') {

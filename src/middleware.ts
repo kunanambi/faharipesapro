@@ -1,18 +1,9 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-next-pathname', request.nextUrl.pathname);
-
-  // This will refresh the session cookie
-  await updateSession(request);
-  
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    }
-  });
+  // This will refresh the session cookie and pass it to the server components
+  return await updateSession(request);
 }
 
 export const config = {
