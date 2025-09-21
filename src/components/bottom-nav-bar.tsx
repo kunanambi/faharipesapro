@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, TrendingUp, Users, User, DollarSign } from "lucide-react";
+import { Home, TrendingUp, Users, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./ui/sidebar";
 import { Button } from "./ui/button";
@@ -12,11 +12,8 @@ const navItems = [
   { href: "/dashboard", icon: Home, label: "Home" },
 ];
 
-const earnItem =   { href: "/earn", icon: TrendingUp, label: "Earn" };
-
 const otherNavItems = [
   { href: "/team", icon: Users, label: "Team" },
-  { href: "/withdraw", icon: DollarSign, label: "Withdraw" },
   { href: "/profile", icon: User, label: "Profile" },
 ]
 
@@ -26,7 +23,7 @@ export function BottomNavBar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-20 border-t bg-card/95 backdrop-blur-sm md:hidden">
-      <nav className="grid grid-cols-5 h-16 items-center justify-around">
+      <nav className="grid grid-cols-4 h-16 items-center justify-around">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
