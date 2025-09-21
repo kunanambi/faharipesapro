@@ -156,3 +156,19 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
     return { data: publicUser, error: null };
 }
 
+export async function changeUserPasswordByAdmin({ userId, newPassword }: { userId: string, newPassword: string }) {
+    const { createClient: createAdminClient } = await import('@/lib/supabase/admin');
+    const supabaseAdmin = createAdminClient();
+
+    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        { password: newPassword }
+    );
+
+    if (error) {
+        console.error("Error changing user password by admin:", error);
+        return { error: 'Failed to change password. ' + error.message };
+    }
+
+    return { data, error: null };
+}
