@@ -1,12 +1,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Users, Play, Youtube, Cog, Shield, User } from "lucide-react";
+import { CreditCard, Users, Play, Youtube, Cog, Shield, User, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 
 const adminLinks = [
     { href: "/admin/users", title: "User Management", icon: <Users /> },
+    { href: "/admin/withdrawals", title: "Withdrawal Requests", icon: <DollarSign /> },
     { href: "/admin/videos/youtube", title: "YouTube Videos", icon: <Youtube /> },
     { href: "/admin/videos/tiktok", title: "Tiktok Videos", icon: <Play /> },
     { href: "/admin/videos/facebook", title: "Facebook Videos", icon: <Play /> },

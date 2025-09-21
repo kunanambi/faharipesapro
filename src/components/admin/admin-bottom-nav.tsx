@@ -3,12 +3,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CreditCard, Users, Video } from "lucide-react";
+import { LayoutDashboard, CreditCard, Users, Video, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Home" },
   { href: "/admin/users", icon: Users, label: "Users" },
+  { href: "/admin/withdrawals", icon: DollarSign, label: "Withdrawals" },
   { href: "/admin/videos", icon: Video, label: "Videos" },
 ];
 

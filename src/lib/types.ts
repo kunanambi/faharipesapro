@@ -37,3 +37,17 @@ export type Ad = {
     reward_amount: number;
     is_active: boolean;
 };
+
+export type Withdrawal = {
+  id: string;
+  created_at: string;
+  user_id: string;
+  amount: number;
+  phone_number: string;
+  status: 'pending' | 'approved' | 'rejected';
+  user_username: string | null;
+  users?: {
+    full_name: string | null;
+    email: string | null;
+  }
+};

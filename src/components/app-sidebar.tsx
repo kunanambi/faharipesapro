@@ -24,6 +24,7 @@ import {
   Youtube,
   Cog,
   Video,
+  DollarSign,
 } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook, FaWhatsapp } from "react-icons/fa";
 
@@ -90,6 +91,14 @@ const UserNav = () => {
             <FaWhatsapp />
             <span>WhatsApp Ads</span>
           </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip="Withdraw" isActive={pathname === "/withdraw"} onClick={handleLinkClick}>
+            <Link href="/withdraw">
+                <DollarSign />
+                <span>Withdraw</span>
+            </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </>

@@ -20,6 +20,7 @@ import {
   Video,
   Cog,
   User,
+  DollarSign,
 } from "lucide-react";
 
 const AdminNav = () => {
@@ -45,6 +46,14 @@ const AdminNav = () => {
                     <Link href="/admin/users">
                         <Users />
                         <span>Users</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Withdrawals" isActive={pathname === "/admin/withdrawals"} onClick={handleLinkClick}>
+                    <Link href="/admin/withdrawals">
+                        <DollarSign />
+                        <span>Withdrawals</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
