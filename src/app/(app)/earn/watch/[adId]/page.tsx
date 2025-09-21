@@ -6,39 +6,31 @@ import { Button } from "@/components/ui/button";
 import { claimReward } from "./actions";
 import { CheckCircle } from "lucide-react";
 
-function getYouTubeVideoId(url: string) {
+function getYouTubeVideoId(url: string): string | null {
     if (!url) return null;
-    let videoId = null;
-    
-    try {
-        // Regex to find YouTube video ID in various URL formats
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
 
-        if (match && match[2].length === 11) {
-            videoId = match[2];
-        } else if (url.length === 11) {
-            // Assume if the user entered a string of 11 chars, it's the ID itself.
-            videoId = url;
-        } else {
-             // Fallback for just in case the regex fails on a valid URL object
-            const urlObj = new URL(url);
-            if (urlObj.hostname === 'youtu.be') {
-                videoId = urlObj.pathname.slice(1);
-            } else if (urlObj.hostname.includes('youtube.com')) {
-                videoId = urlObj.searchParams.get('v');
-            }
-        }
-    } catch (e) {
-        // If new URL() fails, it might be just an ID.
-        if (typeof url === 'string' && url.length === 11) {
-             videoId = url;
-        } else {
-            console.error("Could not parse YouTube URL or ID:", url);
+    let videoId = url; // Assume it might be an ID first
+
+    // Comprehensive regex to handle various YouTube URL formats
+    const patterns = [
+        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})/,
+        /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([\w-]{11})/,
+    ];
+
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match && match[1]) {
+            return match[1];
         }
     }
-    
-    return videoId;
+
+    // If no regex matched but the string is 11 characters long, it's likely a raw ID.
+    if (videoId.length === 11) {
+        return videoId;
+    }
+
+    console.error("Could not parse YouTube URL or ID:", url);
+    return null;
 }
 
 
