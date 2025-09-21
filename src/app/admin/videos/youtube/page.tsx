@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { addYouTubeVideo, getYouTubeVideos } from "./actions";
-import type { YouTubeVideo } from "@/lib/types";
+import { addAd, getAdsByType } from "./actions";
+import type { Ad } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
@@ -22,13 +22,14 @@ type Inputs = {
 
 export default function AdminYouTubeVideosPage() {
     const { toast } = useToast();
-    const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+    const [videos, setVideos] = useState<Ad[]>([]);
     const [loading, setLoading] = useState(true);
     const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<Inputs>();
+    const adType = 'youtube';
 
     const fetchVideos = async () => {
         setLoading(true);
-        const fetchedVideos = await getYouTubeVideos();
+        const fetchedVideos = await getAdsByType(adType);
         setVideos(fetchedVideos);
         setLoading(false);
     }
@@ -38,7 +39,7 @@ export default function AdminYouTubeVideosPage() {
     }, []);
 
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
-        const result = await addYouTubeVideo(data);
+        const result = await addAd({ ...data, adType });
         if (result.error) {
             toast({
                 title: "Error adding video",
@@ -75,7 +76,7 @@ export default function AdminYouTubeVideosPage() {
                             <Input id="title" placeholder="e.g., 'Official Music Video'" {...register("title", { required: true })} />
                         </div>
                          <div className="grid gap-2">
-                            <Label htmlFor="url">YouTube Video URL</Label>
+                            <Label htmlFor="url">YouTube Video URL or ID</Label>
                             <Input id="url" placeholder="https://www.youtube.com/watch?v=..." {...register("url", { required: true })} />
                         </div>
                          <div className="grid gap-2">

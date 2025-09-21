@@ -25,6 +25,7 @@ import {
   Cog,
   Video,
 } from "lucide-react";
+import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 
 const UserNav = () => {
     const { setOpenMobile } = useSidebar();
@@ -44,23 +45,23 @@ const UserNav = () => {
         </SidebarMenuButton>
       </SidebarMenuItem>
        <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="Facebook Ads" onClick={handleLinkClick}>
+        <SidebarMenuButton asChild tooltip="Facebook Ads" isActive={pathname.startsWith('/earn')} onClick={handleLinkClick}>
           <Link href="/earn">
-            <Play />
+            <FaFacebook />
             <span>Facebook Ads</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
        <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="Instagram Ads" onClick={handleLinkClick}>
+        <SidebarMenuButton asChild tooltip="Instagram Ads" isActive={pathname.startsWith('/earn')} onClick={handleLinkClick}>
           <Link href="/earn">
-            <Play />
+            <FaInstagram />
             <span>Instagram Ads</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="YouTube Videos" onClick={handleLinkClick}>
+        <SidebarMenuButton asChild tooltip="YouTube Videos" isActive={pathname.startsWith('/earn')} onClick={handleLinkClick}>
           <Link href="/earn">
             <Youtube />
             <span>YouTube Videos</span>
@@ -68,9 +69,9 @@ const UserNav = () => {
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="Tiktok Videos" onClick={handleLinkClick}>
+        <SidebarMenuButton asChild tooltip="Tiktok Videos" isActive={pathname.startsWith('/earn')} onClick={handleLinkClick}>
           <Link href="/earn">
-            <Play />
+            <FaTiktok />
             <span>Tiktok Videos</span>
           </Link>
         </SidebarMenuButton>

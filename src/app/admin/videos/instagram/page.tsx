@@ -20,12 +20,12 @@ type Inputs = {
   reward_amount: number;
 };
 
-export default function AdminTiktokVideosPage() {
+export default function AdminInstagramPage() {
     const { toast } = useToast();
     const [ads, setAds] = useState<Ad[]>([]);
     const [loading, setLoading] = useState(true);
     const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<Inputs>();
-    const adType = 'tiktok';
+    const adType = 'instagram';
 
     const fetchAds = async () => {
         setLoading(true);
@@ -49,7 +49,7 @@ export default function AdminTiktokVideosPage() {
         } else {
             toast({
                 title: "Ad Added",
-                description: "The new TikTok ad has been added successfully.",
+                description: "The new Instagram ad has been added successfully.",
             });
             reset();
             fetchAds(); // Refresh the list
@@ -59,25 +59,25 @@ export default function AdminTiktokVideosPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="font-headline text-3xl font-bold">Manage TikTok Videos</h1>
-                <p className="text-muted-foreground">Add, remove, and manage TikTok videos for users to watch.</p>
+                <h1 className="font-headline text-3xl font-bold">Manage Instagram Ads</h1>
+                <p className="text-muted-foreground">Add, remove, and manage Instagram Reels or Posts for users to view.</p>
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Add New TikTok Ad</CardTitle>
+                    <CardTitle>Add New Instagram Ad</CardTitle>
                      <CardDescription>
-                        Enter the details for the new ad.
+                        Enter the details for the new ad (Post or Reel).
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div className="grid gap-2">
                             <Label htmlFor="title">Ad Title</Label>
-                            <Input id="title" placeholder="e.g., 'Viral Dance Challenge'" {...register("title", { required: true })} />
+                            <Input id="title" placeholder="e.g., 'New Product Alert'" {...register("title", { required: true })} />
                         </div>
                          <div className="grid gap-2">
-                            <Label htmlFor="url">TikTok Video URL</Label>
-                            <Input id="url" placeholder="https://www.tiktok.com/@user/video/..." {...register("url", { required: true })} />
+                            <Label htmlFor="url">Instagram Post/Reel URL</Label>
+                            <Input id="url" placeholder="https://www.instagram.com/p/..." {...register("url", { required: true })} />
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="reward_amount">Reward Amount (TZS)</Label>
@@ -92,7 +92,7 @@ export default function AdminTiktokVideosPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Existing TikTok Ads</CardTitle>
+                    <CardTitle>Existing Instagram Ads</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
@@ -132,7 +132,7 @@ export default function AdminTiktokVideosPage() {
                                 ) : (
                                     <TableRow>
                                         <TableCell colSpan={4} className="h-24 text-center">
-                                            No TikTok ads found.
+                                            No Instagram ads found.
                                         </TableCell>
                                     </TableRow>
                                 )}

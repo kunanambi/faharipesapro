@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
-import { YouTubeVideo } from "@/lib/types"; // Assuming this type is generic enough
+import { Ad } from "@/lib/types";
 import { PlayCircle, Calendar, Tag } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -37,7 +37,7 @@ async function getUnwatchedAds(userId: string) {
 
     const unwatchedAds = allAds.filter(ad => !watchedAdIds.has(ad.id));
     
-    return unwatchedAds as YouTubeVideo[]; 
+    return unwatchedAds as Ad[]; 
 }
 
 export default async function EarnPage() {
@@ -58,7 +58,7 @@ export default async function EarnPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="font-headline text-3xl font-bold">Earn</h1>
-                <p className="text-muted-foreground">Watch videos and ads to earn money.</p>
+                <p className="text-muted-foreground">Watch videos, posts and ads to earn money.</p>
             </div>
             {earnOptions.length > 0 ? (
                 <div className="space-y-4">
@@ -69,7 +69,7 @@ export default async function EarnPage() {
                                 <div className="flex items-center text-sm text-muted-foreground gap-4">
                                      <div className="flex items-center gap-1">
                                         <Tag className="h-4 w-4" />
-                                        <span>{option.ad_type}</span>
+                                        <span className="capitalize">{option.ad_type}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <Calendar className="h-4 w-4" />
@@ -96,8 +96,8 @@ export default async function EarnPage() {
                     <CardContent className="pt-6">
                         <div className="flex flex-col items-center justify-center h-48 text-center">
                             <VideoOff className="h-12 w-12 text-muted-foreground mb-4" />
-                            <p className="font-semibold text-lg">No New Videos</p>
-                            <p className="text-muted-foreground">You have watched all available videos. Please check back later.</p>
+                            <p className="font-semibold text-lg">No New Ads</p>
+                            <p className="text-muted-foreground">You have watched all available ads. Please check back later.</p>
                         </div>
                     </CardContent>
                 </Card>

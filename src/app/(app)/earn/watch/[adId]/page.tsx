@@ -4,33 +4,41 @@ import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { claimReward } from "./actions";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Link as LinkIcon } from "lucide-react";
+import Image from "next/image";
 
 function getYouTubeVideoId(url: string): string | null {
     if (!url) return null;
-
-    // Comprehensive regex to handle various YouTube URL formats including Shorts
     const patterns = [
         /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)([\w-]{11})/,
         /(?:https?:\/\/)?youtu\.be\/([\w-]{11})/,
     ];
-
     for (const pattern of patterns) {
         const match = url.match(pattern);
         if (match && match[1]) {
             return match[1];
         }
     }
-    
-    // Fallback for raw IDs (if no pattern matches, but it looks like an ID)
-    // A typical YouTube ID is 11 characters long and base64.
-    // This regex is a bit more specific.
     if (/^[\w-]{11}$/.test(url)) {
         return url;
     }
-
     console.error("Could not parse YouTube URL or ID:", url);
     return null;
+}
+
+function OtherAdContent({ url }: { url: string }) {
+    return (
+        <div className="text-center p-8 border-dashed border-2 rounded-lg">
+            <h3 className="font-bold text-lg mb-2">Complete Action</h3>
+            <p className="text-muted-foreground mb-4">Click the button below to open the content in a new tab.</p>
+            <Button asChild>
+                <a href={url} target="_blank" rel="noopener noreferrer">
+                    <LinkIcon className="mr-2 h-4 w-4" />
+                    Open Content
+                </a>
+            </Button>
+        </div>
+    )
 }
 
 
@@ -42,8 +50,7 @@ export default async function WatchAdPage({ params }: { params: { adId: string }
         redirect('/');
     }
 
-    // Check if user has already watched this ad
-    const { data: watchedAd, error: watchedError } = await supabase
+    const { data: watchedAd } = await supabase
         .from('user_watched_ads')
         .select('ad_id')
         .eq('user_id', user.id)
@@ -51,10 +58,8 @@ export default async function WatchAdPage({ params }: { params: { adId: string }
         .single();
     
     if (watchedAd) {
-        // If they have, redirect them with a message
         redirect('/earn?error=already_watched');
     }
-
 
     const { data: ad, error } = await supabase
         .from('ads')
@@ -67,42 +72,54 @@ export default async function WatchAdPage({ params }: { params: { adId: string }
         notFound();
     }
 
-    const videoId = getYouTubeVideoId(ad.url);
+    let adContent;
 
-    if (!videoId) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Invalid Video</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p>The YouTube video URL is invalid. Please contact an administrator.</p>
-                </CardContent>
-            </Card>
+    if (ad.ad_type === 'youtube') {
+        const videoId = getYouTubeVideoId(ad.url);
+        if (!videoId) {
+             return (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Invalid Video</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p>The YouTube video URL for this ad is invalid. Please contact an administrator.</p>
+                    </CardContent>
+                </Card>
+            );
+        }
+        adContent = (
+             <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                <iframe
+                    className="w-full h-full"
+                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                ></iframe>
+            </div>
         );
+    } else if (ad.ad_type === 'instagram' && (ad.url.includes('/p/') || ad.url.includes('/reel/'))) {
+        // Simple image display for Instagram, as embedding is complex and restricted.
+        adContent = <OtherAdContent url={ad.url} />;
+    } else {
+        // Fallback for TikTok, Facebook, or other types
+        adContent = <OtherAdContent url={ad.url} />;
     }
     
     return (
         <div className="space-y-6">
              <div>
                 <h1 className="font-headline text-3xl font-bold">{ad.title}</h1>
-                <p className="text-muted-foreground">Watch the full video below to earn your reward.</p>
+                <p className="text-muted-foreground">View the content below to earn your reward.</p>
             </div>
             <Card>
                 <CardHeader>
                     <CardTitle>Reward: {ad.reward_amount} TZS</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                         <iframe
-                            className="w-full h-full"
-                            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-                            title="YouTube video player"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        ></iframe>
-                    </div>
+                    {adContent}
                 </CardContent>
                 <CardFooter>
                     <form action={claimReward}>
