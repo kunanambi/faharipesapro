@@ -7,6 +7,8 @@ import { revalidatePath } from "next/cache";
 interface WithdrawalRequest {
     amount: number;
     phone_number: string;
+    registration_name: string;
+    network: string;
     userId: string;
     username: string;
 }
@@ -14,7 +16,7 @@ interface WithdrawalRequest {
 export async function requestWithdrawal(input: WithdrawalRequest) {
     const supabase = createClient();
 
-    const { userId, username, amount, phone_number } = input;
+    const { userId, username, amount, phone_number, registration_name, network } = input;
 
     // 1. Get user's current balance
     const { data: userData, error: userError } = await supabase
@@ -53,6 +55,8 @@ export async function requestWithdrawal(input: WithdrawalRequest) {
             user_username: username,
             amount,
             phone_number,
+            registration_name,
+            network,
             status: 'pending',
         })
         .select()

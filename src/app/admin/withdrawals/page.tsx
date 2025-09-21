@@ -24,7 +24,7 @@ export default function AdminWithdrawalsPage() {
         const supabase = createClient();
         const { data, error } = await supabase
             .from('withdrawals')
-            .select(`*, users (full_name, email)`)
+            .select(`*`) // We no longer need the explicit join
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -90,7 +90,7 @@ export default function AdminWithdrawalsPage() {
                                 <TableRow>
                                     <TableHead>User</TableHead>
                                     <TableHead>Amount</TableHead>
-                                    <TableHead>Phone</TableHead>
+                                    <TableHead>Details</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -101,11 +101,14 @@ export default function AdminWithdrawalsPage() {
                                     withdrawals.filter(w => w.status === 'pending').map((w) => (
                                         <TableRow key={w.id}>
                                             <TableCell>
-                                                <div className="font-medium">{w.user_username || w.users?.full_name}</div>
-                                                <div className="text-sm text-muted-foreground">{w.users?.email}</div>
+                                                <div className="font-medium">{w.user_username}</div>
                                             </TableCell>
                                             <TableCell>{formatCurrency(w.amount)}</TableCell>
-                                            <TableCell>{w.phone_number}</TableCell>
+                                            <TableCell>
+                                                <div className="text-sm">Name: {w.registration_name}</div>
+                                                <div className="text-sm text-muted-foreground">Network: {w.network}</div>
+                                                <div className="text-sm text-muted-foreground">Phone: {w.phone_number}</div>
+                                            </TableCell>
                                             <TableCell className="text-right">
                                                 {updatingId === w.id ? <Loader2 className="h-4 w-4 animate-spin ml-auto" /> : (
                                                     <div className="flex gap-2 justify-end">
@@ -148,7 +151,7 @@ export default function AdminWithdrawalsPage() {
                                     withdrawals.filter(w => w.status !== 'pending').map((w) => (
                                         <TableRow key={w.id}>
                                             <TableCell>
-                                                <div className="font-medium">{w.user_username || w.users?.full_name}</div>
+                                                <div className="font-medium">{w.user_username}</div>
                                             </TableCell>
                                             <TableCell>{formatCurrency(w.amount)}</TableCell>
                                             <TableCell>{new Date(w.created_at).toLocaleDateString()}</TableCell>

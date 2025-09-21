@@ -46,6 +46,8 @@ export type Withdrawal = {
   phone_number: string;
   status: 'pending' | 'approved' | 'rejected';
   user_username: string | null;
+  registration_name: string | null; // Added
+  network: string | null; // Added
   users?: {
     full_name: string | null;
     email: string | null;
