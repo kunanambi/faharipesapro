@@ -19,8 +19,10 @@ import type { Withdrawal } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
+const MINIMUM_WITHDRAWAL = 4800;
+
 const formSchema = z.object({
-  amount: z.coerce.number().min(5000, { message: "Minimum withdrawal amount is TZS 5,000." }),
+  amount: z.coerce.number().min(MINIMUM_WITHDRAWAL, { message: `Minimum withdrawal amount is TZS ${MINIMUM_WITHDRAWAL}.` }),
   registration_name: z.string().min(3, { message: "Please enter a valid name." }),
   network: z.string({ required_error: "Please select a network." }),
   phone_number: z.string().min(10, { message: "Please enter a valid phone number." }),
@@ -72,7 +74,7 @@ export default function WithdrawPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: 5000,
+      amount: MINIMUM_WITHDRAWAL,
     },
   });
 
@@ -108,7 +110,7 @@ export default function WithdrawPage() {
       const newBalance = balance - values.amount;
       setBalance(newBalance);
       setWithdrawals([result.data as Withdrawal, ...withdrawals]);
-      form.reset({ amount: 5000, phone_number: phone, registration_name: fullName });
+      form.reset({ amount: MINIMUM_WITHDRAWAL, phone_number: phone, registration_name: fullName });
     }
   };
 
@@ -140,7 +142,7 @@ export default function WithdrawPage() {
         <CardHeader>
           <CardTitle>Withdrawal Form</CardTitle>
           <CardDescription>
-            The minimum withdrawal amount is {formatCurrency(5000)}.
+            The minimum withdrawal amount is {formatCurrency(MINIMUM_WITHDRAWAL)}. A 6% VAT fee will be deducted.
           </CardDescription>
         </CardHeader>
         <Form {...form}>

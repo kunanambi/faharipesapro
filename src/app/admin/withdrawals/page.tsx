@@ -13,6 +13,8 @@ import { Check, X, Loader2, RefreshCw } from "lucide-react";
 import { approveWithdrawal, rejectWithdrawal } from "./actions";
 import { cn } from "@/lib/utils";
 
+const VAT_RATE = 0.06; // 6%
+
 export default function AdminWithdrawalsPage() {
     const { toast } = useToast();
     const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
@@ -98,12 +100,20 @@ export default function AdminWithdrawalsPage() {
                                 {loading ? (
                                     <TableRow><TableCell colSpan={4} className="h-24 text-center">Loading...</TableCell></TableRow>
                                 ) : withdrawals.filter(w => w.status === 'pending').length > 0 ? (
-                                    withdrawals.filter(w => w.status === 'pending').map((w) => (
+                                    withdrawals.filter(w => w.status === 'pending').map((w) => {
+                                        const vatAmount = w.amount * VAT_RATE;
+                                        const netPayable = w.amount - vatAmount;
+
+                                        return (
                                         <TableRow key={w.id}>
                                             <TableCell>
                                                 <div className="font-medium">{w.user_username}</div>
                                             </TableCell>
-                                            <TableCell>{formatCurrency(w.amount)}</TableCell>
+                                            <TableCell>
+                                                <div className="font-bold">{formatCurrency(w.amount)}</div>
+                                                <div className="text-xs text-red-500">VAT (6%): {formatCurrency(vatAmount)}</div>
+                                                <div className="text-sm font-semibold text-green-500">Payable: {formatCurrency(netPayable)}</div>
+                                            </TableCell>
                                             <TableCell>
                                                 <div className="text-sm">Name: {w.registration_name}</div>
                                                 <div className="text-sm text-muted-foreground">Network: {w.network}</div>
@@ -118,7 +128,7 @@ export default function AdminWithdrawalsPage() {
                                                 )}
                                             </TableCell>
                                         </TableRow>
-                                    ))
+                                    )})
                                 ) : (
                                     <TableRow><TableCell colSpan={4} className="h-24 text-center">No pending requests.</TableCell></TableRow>
                                 )}
