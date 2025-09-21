@@ -106,8 +106,8 @@ export default function EarnWhatsAppPage() {
                                 {isVideo ? (
                                     <video controls src={ad.url} className="w-full rounded-md border" />
                                 ) : (
-                                    <div className="relative aspect-video w-full">
-                                        <Image src={ad.url} alt={ad.title} layout="fill" objectFit="contain" className="rounded-md"/>
+                                    <div className="relative w-full aspect-video">
+                                        <Image src={ad.url} alt={ad.title} fill objectFit="contain" className="rounded-md"/>
                                     </div>
                                 )}
                                 <Button onClick={() => handleDownload(ad.url, ad.title)} className="w-full">
