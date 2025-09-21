@@ -42,51 +42,24 @@ export function LoginView() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { email, password } = values;
 
-    // Step 1: Sign in the user
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (signInError) {
+    if (error) {
       toast({
         title: "Login Failed",
-        description: signInError.message,
+        description: error.message,
         variant: "destructive",
       });
       return;
     }
 
-    if (!signInData.user) {
-        toast({
-            title: "Login Failed",
-            description: "Could not retrieve user information. Please try again.",
-            variant: "destructive",
-        });
-        return;
-    }
-
-    // Step 2: Fetch the user's profile from the public.users table
-    const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', signInData.user.id)
-        .single();
-
-    if (userError) {
-        console.error("Error fetching user role:", userError);
-        // If we can't get the profile, it might not exist yet or there's an RLS issue.
-        // A safe fallback is to send them to the regular user flow.
-        router.push('/dashboard');
-        return;
-    }
-
-    // Step 3: Redirect based on the role
-    if (userData && userData.role === 'admin') {
-        router.push('/admin/dashboard');
-    } else {
-        router.push('/dashboard');
-    }
+    // Redirect all users to the dashboard. The dashboard page itself
+    // will handle logic for pending users or other states.
+    router.push('/dashboard');
+    router.refresh(); // Ensure the page reloads to get new auth state on server
   }
 
   return (
