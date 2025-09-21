@@ -42,24 +42,51 @@ export function LoginView() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { email, password } = values;
 
-    const { error } = await supabase.auth.signInWithPassword({
+    // Step 1: Sign in the user
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
+    if (signInError) {
       toast({
         title: "Login Failed",
-        description: error.message,
+        description: signInError.message,
         variant: "destructive",
       });
       return;
     }
-    
-    // Simplified Logic: Redirect all successful logins to the dashboard.
-    // The dashboard page will handle routing for pending/approved users.
-    // The admin check has been removed to simplify and fix the login flow.
-    router.push('/dashboard');
+
+    if (!signInData.user) {
+        toast({
+            title: "Login Failed",
+            description: "Could not retrieve user information. Please try again.",
+            variant: "destructive",
+        });
+        return;
+    }
+
+    // Step 2: Fetch the user's profile from the public.users table
+    const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', signInData.user.id)
+        .single();
+
+    if (userError) {
+        console.error("Error fetching user role:", userError);
+        // If we can't get the profile, it might not exist yet or there's an RLS issue.
+        // A safe fallback is to send them to the regular user flow.
+        router.push('/dashboard');
+        return;
+    }
+
+    // Step 3: Redirect based on the role
+    if (userData && userData.role === 'admin') {
+        router.push('/admin/dashboard');
+    } else {
+        router.push('/dashboard');
+    }
   }
 
   return (
