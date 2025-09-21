@@ -9,12 +9,10 @@ import { CheckCircle } from "lucide-react";
 function getYouTubeVideoId(url: string): string | null {
     if (!url) return null;
 
-    let videoId = url; // Assume it might be an ID first
-
-    // Comprehensive regex to handle various YouTube URL formats
+    // Comprehensive regex to handle various YouTube URL formats including Shorts
     const patterns = [
-        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:watch\?v=|embed\/|v\/|)([\w-]{11})/,
-        /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([\w-]{11})/,
+        /(?:https?:\/\/)?(?:www\.)?youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)([\w-]{11})/,
+        /(?:https?:\/\/)?youtu\.be\/([\w-]{11})/,
     ];
 
     for (const pattern of patterns) {
@@ -23,10 +21,12 @@ function getYouTubeVideoId(url: string): string | null {
             return match[1];
         }
     }
-
-    // If no regex matched but the string is 11 characters long, it's likely a raw ID.
-    if (videoId.length === 11) {
-        return videoId;
+    
+    // Fallback for raw IDs (if no pattern matches, but it looks like an ID)
+    // A typical YouTube ID is 11 characters long and base64.
+    // This regex is a bit more specific.
+    if (/^[\w-]{11}$/.test(url)) {
+        return url;
     }
 
     console.error("Could not parse YouTube URL or ID:", url);
