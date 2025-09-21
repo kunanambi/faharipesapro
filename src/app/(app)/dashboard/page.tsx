@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   // Fetch the public user data which contains balance, status, and role
   const { data: publicUser, error: publicUserError } = await supabase
     .from('users')
-    .select('username, balance, status, role')
+    .select('username, balance, total_earnings, status, role')
     .eq('id', user.id)
     .single();
 
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
   }
 
   const balance = publicUser.balance || 0;
-  const netProfit = 0; // net_profit column was removed
+  const netProfit = publicUser.total_earnings || 0;
   const cost = 5200;
   const username = publicUser.username || 'User';
 
@@ -77,7 +77,7 @@ export default async function DashboardPage() {
           value={formatCurrency(netProfit)}
           icon={<BarChart2 className="text-white/80" />}
           cardClassName="bg-blue-600/90 text-white"
-          description="Calculated from your earnings"
+          description="Total earnings accumulated"
         />
         <StatCard
           title="Cost"

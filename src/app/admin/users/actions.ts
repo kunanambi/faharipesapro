@@ -1,6 +1,7 @@
 
 'use server'
 
+import { createClient as createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -26,10 +27,10 @@ export async function approveUser(userId: string) {
     if (approvedUser && approvedUser.invited_by) {
         const referrerUsername = approvedUser.invited_by;
         
-        // Get the referrer's current balance
+        // Get the referrer's current data
         const { data: referrer, error: referrerError } = await supabase
             .from('users')
-            .select('id, balance')
+            .select('id, balance, total_earnings')
             .eq('username', referrerUsername)
             .single();
 
@@ -39,9 +40,10 @@ export async function approveUser(userId: string) {
         } else {
             // Calculate new balance and update the referrer
             const newBalance = (referrer.balance || 0) + REFERRAL_BONUS;
+            const newTotalEarnings = (referrer.total_earnings || 0) + REFERRAL_BONUS;
             const { error: balanceError } = await supabase
                 .from('users')
-                .update({ balance: newBalance })
+                .update({ balance: newBalance, total_earnings: newTotalEarnings })
                 .eq('id', referrer.id);
 
             if (balanceError) {
@@ -76,7 +78,7 @@ async function revokeReferralBonus(userId: string) {
     const referrerUsername = demotedUser.invited_by;
     const { data: referrer, error: referrerError } = await supabase
         .from('users')
-        .select('id, balance')
+        .select('id, balance, total_earnings')
         .eq('username', referrerUsername)
         .single();
 
@@ -85,11 +87,12 @@ async function revokeReferralBonus(userId: string) {
         return; // Referrer not found, can't revoke.
     }
 
-    // Step 3: Deduct the bonus from the referrer's balance.
+    // Step 3: Deduct the bonus from the referrer's balance and total earnings.
     const newBalance = Math.max(0, (referrer.balance || 0) - REFERRAL_BONUS);
+    const newTotalEarnings = Math.max(0, (referrer.total_earnings || 0) - REFERRAL_BONUS);
     const { error: balanceError } = await supabase
         .from('users')
-        .update({ balance: newBalance })
+        .update({ balance: newBalance, total_earnings: newTotalEarnings })
         .eq('id', referrer.id);
 
     if (balanceError) {
@@ -102,45 +105,43 @@ export async function toggleUserStatus(userId: string, currentStatus: 'approved'
     const supabase = createClient();
     const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
     
-    const { data, error } = await supabase
-        .from('users')
-        .update({ status: newStatus })
-        .eq('id', userId)
-        .select('id')
-        .single();
-
-    if (error) {
-        console.error("Error toggling user status:", error);
-        return { error: 'Failed to update status.' };
-    }
-
+    // This is a simplified toggle; using approveUser directly is better for bonus logic
     if (newStatus === 'approved') {
-         // If moving to approved, grant the bonus.
          await approveUser(userId);
     } else {
-        // If moving to pending, revoke the bonus.
+        // If moving to pending, update status and revoke bonus
+        const { error } = await supabase
+            .from('users')
+            .update({ status: 'pending' })
+            .eq('id', userId);
+        
+        if (error) {
+             console.error("Error toggling user status to pending:", error);
+             return { error: 'Failed to update status.' };
+        }
         await revokeReferralBonus(userId);
     }
     
     revalidatePath('/admin/users');
     revalidatePath('/team'); // Revalidate team page to update earnings/status
     revalidatePath('/dashboard'); // Revalidate dashboard to update balance
-    return { data, error: null };
+    return { data: { id: userId }, error: null };
 }
 
-export async function updateUserByAdmin({ userId, fullName, username, phone, email, balance }: { 
+export async function updateUserByAdmin({ userId, fullName, username, phone, email, balance, total_earnings }: { 
     userId: string,
     fullName: string,
     username: string,
     phone: string,
     email: string,
-    balance: number
+    balance: number,
+    total_earnings: number
 }) {
     const supabase = createClient();
 
     const { data: publicUser, error: publicUserError } = await supabase
         .from('users')
-        .update({ full_name: fullName, username, phone, email, balance })
+        .update({ full_name: fullName, username, phone, email, balance, total_earnings })
         .eq('id', userId)
         .select()
         .single();
@@ -152,12 +153,11 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
 
     revalidatePath('/admin/users');
     revalidatePath(`/dashboard`);
-    revalidatePath(`/profile/${username}`);
+    revalidatePath(`/team`);
     return { data: publicUser, error: null };
 }
 
 export async function changeUserPasswordByAdmin({ userId, newPassword }: { userId: string, newPassword: string }) {
-    const { createClient: createAdminClient } = await import('@/lib/supabase/admin');
     const supabaseAdmin = createAdminClient();
 
     const { data, error } = await supabaseAdmin.auth.admin.updateUserById(

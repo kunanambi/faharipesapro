@@ -45,28 +45,29 @@ export async function claimReward(formData: FormData) {
         return { error: 'Could not record your watch. Please try again.' };
     }
 
-    // 2. Fetch user's current balance
+    // 2. Fetch user's current balance and total earnings
     const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('balance')
+        .select('balance, total_earnings')
         .eq('id', user.id)
         .single();
     
     if (userError || !userData) {
-        console.error("Error fetching user balance:", userError);
+        console.error("Error fetching user data:", userError);
         // We should probably rollback the watched ad record here in a real scenario
         return { error: 'Could not fetch your profile to update balance.' };
     }
 
-    // 3. Update balance
+    // 3. Update balance and total earnings
     const newBalance = (userData.balance || 0) + rewardAmount;
+    const newTotalEarnings = (userData.total_earnings || 0) + rewardAmount;
     const { error: balanceError } = await supabase
         .from('users')
-        .update({ balance: newBalance })
+        .update({ balance: newBalance, total_earnings: newTotalEarnings })
         .eq('id', user.id);
 
     if (balanceError) {
-        console.error("Error updating balance:", balanceError);
+        console.error("Error updating balance/earnings:", balanceError);
         return { error: 'Could not update your balance.' };
     }
 

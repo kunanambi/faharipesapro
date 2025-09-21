@@ -33,6 +33,7 @@ export function EditUserDialog({ user, isOpen, onClose, onUserUpdate }: EditUser
   const [phone, setPhone] = useState(user.phone || "");
   const [email, setEmail] = useState(user.email || "");
   const [balance, setBalance] = useState(user.balance || 0);
+  const [totalEarnings, setTotalEarnings] = useState(user.total_earnings || 0);
   const [isSaving, setIsSaving] = useState(false);
   
   // Password fields
@@ -51,7 +52,8 @@ export function EditUserDialog({ user, isOpen, onClose, onUserUpdate }: EditUser
       username,
       phone,
       email,
-      balance: Number(balance)
+      balance: Number(balance),
+      total_earnings: Number(totalEarnings)
     });
 
     if (result.error) {
@@ -177,6 +179,18 @@ export function EditUserDialog({ user, isOpen, onClose, onUserUpdate }: EditUser
               type="number"
               value={balance}
               onChange={(e) => setBalance(Number(e.target.value))}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="totalEarnings" className="text-right">
+              Total Earnings
+            </Label>
+            <Input
+              id="totalEarnings"
+              type="number"
+              value={totalEarnings}
+              onChange={(e) => setTotalEarnings(Number(e.target.value))}
               className="col-span-3"
             />
           </div>

@@ -1,5 +1,4 @@
 
-
 export type PublicUser = {
   id: string;
   created_at: string | null;
@@ -10,6 +9,7 @@ export type PublicUser = {
   status: 'pending' | 'approved';
   role: string | null;
   balance: number | null;
+  total_earnings: number | null;
   invited_by: string | null;
   referral_code: string | null;
 };
