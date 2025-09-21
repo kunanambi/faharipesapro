@@ -45,32 +45,32 @@ const UserNav = () => {
         </SidebarMenuButton>
       </SidebarMenuItem>
        <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="Facebook Ads" isActive={pathname.startsWith('/earn')} onClick={handleLinkClick}>
-          <Link href="/earn">
+        <SidebarMenuButton asChild tooltip="Facebook Ads" isActive={pathname === '/earn/facebook'} onClick={handleLinkClick}>
+          <Link href="/earn/facebook">
             <FaFacebook />
             <span>Facebook Ads</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
        <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="Instagram Ads" isActive={pathname.startsWith('/earn')} onClick={handleLinkClick}>
-          <Link href="/earn">
+        <SidebarMenuButton asChild tooltip="Instagram Ads" isActive={pathname === '/earn/instagram'} onClick={handleLinkClick}>
+          <Link href="/earn/instagram">
             <FaInstagram />
             <span>Instagram Ads</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="YouTube Videos" isActive={pathname.startsWith('/earn')} onClick={handleLinkClick}>
-          <Link href="/earn">
+        <SidebarMenuButton asChild tooltip="YouTube Videos" isActive={pathname === '/earn/youtube'} onClick={handleLinkClick}>
+          <Link href="/earn/youtube">
             <Youtube />
             <span>YouTube Videos</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="Tiktok Videos" isActive={pathname.startsWith('/earn')} onClick={handleLinkClick}>
-          <Link href="/earn">
+        <SidebarMenuButton asChild tooltip="Tiktok Videos" isActive={pathname === '/earn/tiktok'} onClick={handleLinkClick}>
+          <Link href="/earn/tiktok">
             <FaTiktok />
             <span>Tiktok Videos</span>
           </Link>

@@ -14,9 +14,10 @@ export async function claimReward(formData: FormData) {
     }
     
     const adId = formData.get('adId') as string;
+    const adType = formData.get('adType') as string;
     const rewardAmount = parseFloat(formData.get('rewardAmount') as string);
 
-    if (!adId || isNaN(rewardAmount)) {
+    if (!adId || isNaN(rewardAmount) || !adType) {
         return { error: 'Invalid ad data.' };
     }
 
@@ -30,7 +31,7 @@ export async function claimReward(formData: FormData) {
     
     if (existingWatch) {
         console.warn(`User ${user.id} tried to claim reward for already watched ad ${adId}.`);
-        redirect('/earn');
+        redirect(`/earn/${adType}?error=already_watched`);
         return;
     }
 
@@ -70,9 +71,9 @@ export async function claimReward(formData: FormData) {
     }
 
     // Revalidate paths to show updated data
-    revalidatePath('/earn');
+    revalidatePath(`/earn/${adType}`);
     revalidatePath('/dashboard');
     
-    // Redirect back to the earn page
-    redirect('/earn');
+    // Redirect back to the earn page for that specific ad type
+    redirect(`/earn/${adType}`);
 }

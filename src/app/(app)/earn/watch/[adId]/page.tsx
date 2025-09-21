@@ -49,18 +49,7 @@ export default async function WatchAdPage({ params }: { params: { adId: string }
     if (!user) {
         redirect('/');
     }
-
-    const { data: watchedAd } = await supabase
-        .from('user_watched_ads')
-        .select('ad_id')
-        .eq('user_id', user.id)
-        .eq('ad_id', params.adId)
-        .single();
     
-    if (watchedAd) {
-        redirect('/earn?error=already_watched');
-    }
-
     const { data: ad, error } = await supabase
         .from('ads')
         .select('*')
@@ -70,6 +59,17 @@ export default async function WatchAdPage({ params }: { params: { adId: string }
 
     if (error || !ad) {
         notFound();
+    }
+
+    const { data: watchedAd } = await supabase
+        .from('user_watched_ads')
+        .select('ad_id')
+        .eq('user_id', user.id)
+        .eq('ad_id', params.adId)
+        .single();
+    
+    if (watchedAd) {
+        redirect(`/earn/${ad.ad_type}?error=already_watched`);
     }
 
     let adContent;
@@ -124,6 +124,7 @@ export default async function WatchAdPage({ params }: { params: { adId: string }
                 <CardFooter>
                     <form action={claimReward}>
                         <input type="hidden" name="adId" value={ad.id} />
+                        <input type="hidden" name="adType" value={ad.ad_type} />
                         <input type="hidden" name="rewardAmount" value={ad.reward_amount} />
                         <Button size="lg">
                             <CheckCircle className="mr-2 h-5 w-5"/>
