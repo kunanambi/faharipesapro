@@ -18,7 +18,8 @@ export async function addWhatsAppAd(formData: FormData) {
 
     // 1. Upload file to Supabase Storage in the correct bucket
     const fileExt = mediaFile.name.split('.').pop();
-    const fileName = `uploads/${Date.now()}.${fileExt}`;
+    // Corrected file path: Do not include "uploads/" here. It will be part of the file name itself.
+    const fileName = `${Date.now()}.${fileExt}`;
     const filePath = fileName;
 
     const { error: uploadError } = await supabase.storage
@@ -66,3 +67,4 @@ export async function addWhatsAppAd(formData: FormData) {
     revalidatePath('/earn/whatsapp');
     return { data, error: null };
 }
+
