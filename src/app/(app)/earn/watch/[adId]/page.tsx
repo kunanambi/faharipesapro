@@ -1,8 +1,9 @@
 
+
 'use client'
 
 import { createClient } from "@/lib/supabase/client";
-import { notFound, redirect, useRouter } from "next/navigation";
+import { notFound, redirect, useRouter, useParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { claimReward } from "./actions";
@@ -126,8 +127,9 @@ function WhatsAppAdContent({ ad, user }: { ad: Ad, user: PublicUser }) {
 }
 
 
-export default function WatchAdPage({ params }: { params: { adId: string } }) {
-    const { adId } = params;
+export default function WatchAdPage() {
+    const params = useParams();
+    const adId = params.adId as string;
     const supabase = createClient();
     const router = useRouter();
     const [ad, setAd] = useState<Ad | null>(null);
@@ -136,6 +138,8 @@ export default function WatchAdPage({ params }: { params: { adId: string } }) {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!adId) return;
+
             const { data: { user: authUser } } = await supabase.auth.getUser();
             if (!authUser) {
                 router.push('/');
