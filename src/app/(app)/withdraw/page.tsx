@@ -81,7 +81,7 @@ export default function WithdrawPage() {
 
   const watchAmount = form.watch("amount");
   const vatAmount = watchAmount * VAT_RATE;
-  const totalDeduction = watchAmount + vatAmount;
+  const totalDeduction = (watchAmount || 0) + vatAmount;
 
   useEffect(() => {
     if (phone) form.setValue("phone_number", phone);
