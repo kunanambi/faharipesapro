@@ -2,7 +2,7 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { Ad } from "@/lib/types";
-import { Share2, Calendar, Tag, Info, VideoOff } from "lucide-react";
+import { Share2, Calendar, Tag, VideoOff } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -38,23 +38,68 @@ async function getUnwatchedAds(userId: string, adType: Ad['ad_type']) {
     return unwatchedAds as Ad[]; 
 }
 
+export default async function EarnWhatsAppPage() {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-export default function EarnWhatsAppPage() {
+    if (!user) {
+        redirect('/');
+    }
+
+    const earnOptions = await getUnwatchedAds(user.id, 'whatsapp');
+    
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('en-US').format(value) + ' TZS';
+    }
+
     return (
         <div className="space-y-6 pb-24">
             <div>
                 <h1 className="font-headline text-3xl font-bold">WhatsApp Ads</h1>
                 <p className="text-muted-foreground">Share on your status to earn.</p>
             </div>
-             <Card>
-                <CardContent className="pt-6">
-                    <div className="flex flex-col items-center justify-center h-48 text-center">
-                        <Info className="h-12 w-12 text-muted-foreground mb-4" />
-                        <p className="font-semibold text-lg">Not Yet Implemented</p>
-                        <p className="text-muted-foreground">This feature is still under development. Please check back later.</p>
-                    </div>
-                </CardContent>
-            </Card>
+            {earnOptions.length > 0 ? (
+                <div className="space-y-4">
+                    {earnOptions.map(option => (
+                        <Card key={option.id} className="bg-card border border-border/50">
+                            <CardContent className="p-4 space-y-3">
+                                <h3 className="font-bold text-lg">{option.title}</h3>
+                                <div className="flex items-center text-sm text-muted-foreground gap-4">
+                                     <div className="flex items-center gap-1">
+                                        <Tag className="h-4 w-4" />
+                                        <span className="capitalize">{option.ad_type}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Calendar className="h-4 w-4" />
+                                        <span>{new Date(option.created_at).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                            <CardFooter className="flex items-center justify-between p-4 pt-0">
+                                <Button variant="secondary" className="bg-blue-600 hover:bg-blue-700 text-white font-bold" disabled>
+                                    {formatCurrency(option.reward_amount)}
+                                </Button>
+                                <Button asChild className="bg-green-600 hover:bg-green-700 text-white font-bold">
+                                    <Link href={`/earn/watch/${option.id}`}>
+                                        <Share2 className="mr-2 h-5 w-5"/>
+                                        SHARE
+                                    </Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            ) : (
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex flex-col items-center justify-center h-48 text-center">
+                            <VideoOff className="h-12 w-12 text-muted-foreground mb-4" />
+                            <p className="font-semibold text-lg">No New WhatsApp Ads</p>
+                            <p className="text-muted-foreground">You have viewed all available status ads. Please check back later.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     )
 }
