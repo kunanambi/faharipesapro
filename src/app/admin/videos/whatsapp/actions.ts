@@ -22,7 +22,7 @@ export async function addWhatsAppAd(formData: FormData) {
     const filePath = fileName;
 
     const { error: uploadError } = await supabase.storage
-        .from('public') // CORRECTED BUCKET NAME
+        .from('public') 
         .upload(filePath, mediaFile);
 
     if (uploadError) {
@@ -32,7 +32,7 @@ export async function addWhatsAppAd(formData: FormData) {
 
     // 2. Get the public URL of the uploaded file
     const { data: urlData } = supabase.storage
-        .from('public') // CORRECTED BUCKET NAME
+        .from('public') 
         .getPublicUrl(filePath);
 
     if (!urlData) {

@@ -53,3 +53,36 @@ export async function getAdsByType(adType: string): Promise<Ad[]> {
 
     return data as Ad[];
 }
+
+export async function deleteAd(adId: string, adType: string) {
+    const supabase = createClient();
+
+    // If ad is a whatsapp ad, we need to delete the file from storage
+    const { data: adData } = await supabase.from('ads').select('url').eq('id', adId).single();
+    if (adData && adType === 'whatsapp') {
+        try {
+            const filePath = adData.url.split('/public/').pop();
+            if (filePath) {
+                 await supabase.storage.from('public').remove([filePath]);
+            }
+        } catch(e) {
+            console.error("Could not delete from storage", e);
+        }
+    }
+
+
+    const { error } = await supabase
+        .from('ads')
+        .delete()
+        .eq('id', adId);
+
+    if (error) {
+        console.error(`Error deleting ad ${adId}:`, error);
+        return { error: 'Failed to delete the ad.' };
+    }
+
+    revalidatePath(`/admin/videos/${adType}`);
+    revalidatePath(`/earn/${adType}`);
+
+    return { error: null };
+}

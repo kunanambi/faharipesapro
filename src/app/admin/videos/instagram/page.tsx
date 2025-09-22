@@ -8,11 +8,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { addAd, getAdsByType } from "../youtube/actions"; // Re-using actions
+import { addAd, getAdsByType, deleteAd } from "../youtube/actions"; // Re-using actions
 import type { Ad } from "@/lib/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type Inputs = {
   title: string;
@@ -52,9 +63,26 @@ export default function AdminInstagramPage() {
                 description: "The new Instagram ad has been added successfully.",
             });
             reset();
-            fetchAds(); // Refresh the list
+            setAds(prev => [result.data as Ad, ...prev]);
         }
     };
+    
+    const handleDelete = async (adId: string) => {
+        const result = await deleteAd(adId, adType);
+        if (result.error) {
+            toast({
+                title: "Error Deleting Ad",
+                description: result.error,
+                variant: "destructive",
+            });
+        } else {
+            toast({
+                title: "Ad Deleted",
+                description: "The ad has been successfully deleted.",
+            });
+            setAds(prev => prev.filter(ad => ad.id !== adId));
+        }
+    }
 
     return (
         <div className="space-y-6">
@@ -102,7 +130,7 @@ export default function AdminInstagramPage() {
                                     <TableHead>Title</TableHead>
                                     <TableHead>Reward</TableHead>
                                     <TableHead className="hidden md:table-cell">Status</TableHead>
-                                    <TableHead className="text-right">URL</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -120,12 +148,33 @@ export default function AdminInstagramPage() {
                                                     {ad.is_active ? "Active" : "Inactive"}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell className="text-right">
+                                            <TableCell className="text-right space-x-2">
                                                 <Button variant="ghost" size="icon" asChild>
                                                     <a href={ad.url} target="_blank" rel="noopener noreferrer">
                                                         <ExternalLink className="h-4 w-4" />
                                                     </a>
                                                 </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This action cannot be undone. This will permanently delete the ad.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDelete(ad.id)} className="bg-destructive hover:bg-destructive/90">
+                                                                Delete
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </TableCell>
                                         </TableRow>
                                     ))
