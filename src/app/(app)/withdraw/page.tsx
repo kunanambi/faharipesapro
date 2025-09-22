@@ -80,8 +80,8 @@ export default function WithdrawPage() {
   });
 
   const watchAmount = form.watch("amount");
-  const vatAmount = watchAmount * VAT_RATE;
-  const totalDeduction = (watchAmount || 0) + vatAmount;
+  const vatAmount = Number(watchAmount || 0) * VAT_RATE;
+  const totalDeduction = Number(watchAmount || 0) + vatAmount;
 
   useEffect(() => {
     if (phone) form.setValue("phone_number", phone);
@@ -220,7 +220,7 @@ export default function WithdrawPage() {
               <div className="rounded-md border border-dashed p-4 space-y-2">
                   <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Withdrawal Amount:</span>
-                      <span className="font-medium">{formatCurrency(watchAmount || 0)}</span>
+                      <span className="font-medium">{formatCurrency(Number(watchAmount || 0))}</span>
                   </div>
                    <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">VAT (6%):</span>
