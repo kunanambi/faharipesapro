@@ -1,13 +1,17 @@
 
-import { createClient } from "@/lib/supabase/server";
-import { notFound, redirect } from "next/navigation";
+'use client'
+
+import { createClient } from "@/lib/supabase/client";
+import { notFound, redirect, useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { claimReward } from "./actions";
-import { CheckCircle, Download, Link as LinkIcon, MessageCircle } from "lucide-react";
+import { CheckCircle, Download, Link as LinkIcon, MessageCircle, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+import type { Ad, PublicUser } from "@/lib/types";
 
 function getYouTubeVideoId(url: string): string | null {
     if (!url) return null;
@@ -43,14 +47,21 @@ function OtherAdContent({ url }: { url: string }) {
     )
 }
 
-function WhatsAppAdContent({ ad }: { ad: { id: string, url: string, title: string, reward_amount: number, ad_type: string } }) {
-    const isVideo = ad.url.includes('video');
-    
-    const whatsappNumber = "+255768525345";
-    const whatsappMessage = `Hi Sir, I need help with WhatsApp Ad ID: ${ad.id}.`;
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-      whatsappMessage
-    )}`;
+function WhatsAppAdContent({ ad, user }: { ad: Ad, user: PublicUser }) {
+    const isVideo = ad.url.startsWith('data:video');
+    const [viewsCount, setViewsCount] = useState<string>('');
+    const [whatsappUrl, setWhatsappUrl] = useState('');
+
+    useEffect(() => {
+        if (viewsCount && Number(viewsCount) > 0) {
+            const whatsappNumber = "+255768525345";
+            const whatsappMessage = `Hi Sir, I have shared the ad "${ad.title}" on my status. I got ${viewsCount} views. Please verify and credit my account. Username: ${user.username}`;
+            const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+            setWhatsappUrl(url);
+        } else {
+            setWhatsappUrl('');
+        }
+    }, [viewsCount, ad.title, user.username]);
 
     return (
         <>
@@ -61,7 +72,8 @@ function WhatsAppAdContent({ ad }: { ad: { id: string, url: string, title: strin
                         <li>Download the media below.</li>
                         <li>Post it on your WhatsApp status.</li>
                         <li>After 24 hours, check views and enter the count below.</li>
-                        <li>Click "Claim Reward" to submit.</li>
+                        <li>Click the WhatsApp button to send your screenshot.</li>
+                        <li>Finally, click "Claim Reward" to submit.</li>
                     </ol>
                 </div>
                 {isVideo ? (
@@ -70,7 +82,7 @@ function WhatsAppAdContent({ ad }: { ad: { id: string, url: string, title: strin
                     <Image src={ad.url} alt={ad.title} width={500} height={500} className="w-full h-auto rounded-lg border" />
                 )}
                 <Button asChild className="w-full">
-                    <a href={ad.url} download target="_blank" rel="noopener noreferrer">
+                    <a href={ad.url} download={`fahari-ad-${ad.id}.${isVideo ? 'mp4' : 'jpg'}`} target="_blank" rel="noopener noreferrer">
                         <Download className="mr-2 h-4 w-4" />
                         Download Media
                     </a>
@@ -91,6 +103,8 @@ function WhatsAppAdContent({ ad }: { ad: { id: string, url: string, title: strin
                             placeholder="e.g., 50" 
                             required 
                             className="bg-background"
+                            value={viewsCount}
+                            onChange={(e) => setViewsCount(e.target.value)}
                         />
                     </div>
                     <Button size="lg" className="w-full">
@@ -101,50 +115,92 @@ function WhatsAppAdContent({ ad }: { ad: { id: string, url: string, title: strin
             </form>
 
             {/* Floating WhatsApp Button */}
-             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="fixed bottom-24 right-4 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-transform hover:scale-110">
-                <MessageCircle className="h-6 w-6" />
-                <span className="sr-only">Contact on WhatsApp</span>
-            </a>
+            {whatsappUrl && (
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="fixed bottom-24 right-4 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition-transform hover:scale-110 z-50">
+                    <MessageCircle className="h-6 w-6" />
+                    <span className="sr-only">Send Screenshot on WhatsApp</span>
+                </a>
+            )}
         </>
     )
 }
 
 
-export default async function WatchAdPage({ params }: { params: { adId: string } }) {
+export default function WatchAdPage({ params }: { params: { adId: string } }) {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-        redirect('/');
+    const router = useRouter();
+    const [ad, setAd] = useState<Ad | null>(null);
+    const [user, setUser] = useState<PublicUser | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const { data: { user: authUser } } = await supabase.auth.getUser();
+            if (!authUser) {
+                router.push('/');
+                return;
+            }
+
+            // Fetch public user data
+            const { data: publicUser, error: userError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', authUser.id)
+                .single();
+
+            if (userError || !publicUser) {
+                 console.error("Error fetching user profile:", userError);
+                 router.push('/dashboard');
+                 return;
+            }
+            setUser(publicUser as PublicUser);
+
+            // Fetch ad data
+            const { data: adData, error: adError } = await supabase
+                .from('ads')
+                .select('*')
+                .eq('id', params.adId)
+                .eq('is_active', true)
+                .single();
+
+            if (adError || !adData) {
+                notFound();
+                return;
+            }
+            setAd(adData as Ad);
+
+            // Check if ad was already watched
+            const { data: watchedAd } = await supabase
+                .from('user_watched_ads')
+                .select('ad_id')
+                .eq('user_id', authUser.id)
+                .eq('ad_id', params.adId)
+                .single();
+            
+            if (watchedAd) {
+                redirect(`/earn/${adData.ad_type}?error=already_watched`);
+                return;
+            }
+            
+            setLoading(false);
+        };
+        
+        fetchData();
+    }, [params.adId, supabase, router]);
+
+    if (loading || !ad || !user) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
     }
     
-    const { data: ad, error } = await supabase
-        .from('ads')
-        .select('*')
-        .eq('id', params.adId)
-        .eq('is_active', true)
-        .single();
-
-    if (error || !ad) {
-        notFound();
-    }
-
-    const { data: watchedAd } = await supabase
-        .from('user_watched_ads')
-        .select('ad_id')
-        .eq('user_id', user.id)
-        .eq('ad_id', params.adId)
-        .single();
-    
-    if (watchedAd) {
-        redirect(`/earn/${ad.ad_type}?error=already_watched`);
-    }
-
     let adContent;
     let claimForm;
 
     if (ad.ad_type === 'whatsapp') {
-        adContent = <WhatsAppAdContent ad={ad} />;
+        adContent = <WhatsAppAdContent ad={ad} user={user} />;
         // The form is now inside the WhatsAppAdContent component
         claimForm = null;
     } else {
