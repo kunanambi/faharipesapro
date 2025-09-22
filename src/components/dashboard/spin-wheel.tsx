@@ -5,15 +5,18 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+// Updated segments based on the provided image
 const segments = [
-  { color: "#8E44AD", label: "500" },
-  { color: "#2980B9", label: "200" },
-  { color: "#27AE60", label: "1000" },
-  { color: "#F1C40F", label: "Try Again" },
-  { color: "#E67E22", label: "300" },
-  { color: "#E74C3C", label: "Jackpot!" },
-  { color: "#16A085", label: "150" },
-  { color: "#C0392B", label: "100" },
+    { color: "#6A3B99", label: "TSH 150" },   // Purple
+    { color: "#55A630", label: "TSH 500" },   // Green
+    { color: "#E5383B", label: "TSH 1,000" }, // Red
+    { color: "#C71F66", label: "TSH 2,050" }, // Magenta
+    { color: "#F07167", label: "TSH 10,000" },// Orange-Red
+    { color: "#0B4DA0", label: "TRY AGAIN" }, // Dark Blue
+    { color: "#0081A7", label: "TSH 1,500" }, // Teal
+    { color: "#007200", label: "TSH 1,350" }, // Dark Green
+    { color: "#FFC300", label: "TSH 100" },   // Yellow
+    { color: "#D4A373", label: "TSH 150" },   // Gold
 ];
 
 const segCount = segments.length;
@@ -59,21 +62,25 @@ export function SpinWheel() {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
-    }, 3000); // Changed duration to 3 seconds
+    }, 3000); // 3-second spin duration
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center select-none w-full max-w-xs mx-auto">
+    <div className="relative flex flex-col items-center justify-center select-none w-full max-w-sm mx-auto">
       {/* Pointer */}
-      <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-20" style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}>
-         <div className="w-0 h-0 border-l-[15px] border-r-[15px] border-t-[30px] border-l-transparent border-r-transparent border-t-primary" />
+      <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20" style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))' }}>
+         <div className="w-0 h-0 border-l-[20px] border-r-[20px] border-b-[30px] border-l-transparent border-r-transparent border-b-yellow-400" />
       </div>
 
       {/* Wheel */}
       <div
-        className="relative w-72 h-72 rounded-full border-8 border-primary/80 bg-gray-200 shadow-2xl overflow-hidden transition-transform duration-[3000ms] ease-[cubic-bezier(0.1,0.7,0.3,1)]"
-        style={{ transform: `rotate(${rotation}deg)` }}
+        className="relative w-80 h-80 rounded-full shadow-2xl overflow-hidden transition-transform duration-[3000ms] ease-[cubic-bezier(0.1,0.7,0.3,1)]"
+        style={{ 
+            transform: `rotate(${rotation}deg)`,
+            boxShadow: '0 0 20px 5px rgba(255, 195, 0, 0.6), inset 0 0 10px rgba(0,0,0,0.5)'
+        }}
       >
+        <div className="absolute inset-0 w-full h-full rounded-full border-[10px] border-black/50 z-10"/>
         {segments.map((seg, i) => {
           const rotationAngle = i * angle;
           return (
@@ -88,18 +95,22 @@ export function SpinWheel() {
                 className="w-full h-full"
                 style={{
                   backgroundColor: seg.color,
-                  clipPath: 'polygon(0% 0%, 100% 50%, 0% 100%)',
-                  transform: `rotate(${angle / 2}deg)`,
-                  transformOrigin: '100% 50%',
+                  clipPath: 'polygon(0 0, 100% 50%, 0 100%)',
+                  transform: 'translateX(-0.5px) rotate(0.5deg)', // Small gap fix
                 }}
               >
                 <div
                   className="absolute w-full h-full flex items-center justify-center"
                   style={{
-                    transform: `rotate(${angle / 2}deg) translate(25%, 0) rotate(-${angle}deg)`,
+                    transform: `translateX(50%) rotate(${angle/2}deg)`,
                   }}
                 >
-                  <span className="text-white font-bold text-sm -rotate-90 block w-max">{seg.label}</span>
+                  <span 
+                    className="text-white font-bold text-lg -rotate-90 block w-max"
+                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
+                  >
+                      {seg.label}
+                  </span>
                 </div>
               </div>
             </div>
@@ -108,8 +119,11 @@ export function SpinWheel() {
       </div>
       
        {/* Center Hub */}
-      <div className="absolute w-16 h-16 bg-gradient-to-br from-yellow-300 to-amber-500 rounded-full border-4 border-white flex items-center justify-center shadow-inner z-10">
-      </div>
+        <div className="absolute w-28 h-28 bg-background rounded-full border-4 border-yellow-400 flex flex-col items-center justify-center shadow-inner z-10"
+             style={{ boxShadow: '0 0 15px rgba(255, 195, 0, 0.7), inset 0 0 10px rgba(0,0,0,0.5)'}}>
+            <span className="font-bold text-2xl text-white tracking-wider" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}>SPIN &</span>
+            <span className="font-bold text-3xl text-white tracking-wider" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}>WIN!</span>
+        </div>
 
       <Button onClick={handleSpin} disabled={isSpinning} className="mt-12 text-lg font-bold py-6 px-10 rounded-full shadow-lg bg-primary hover:bg-primary/90">
         {isSpinning ? "Inazunguka..." : "Zungusha Sasa"}
