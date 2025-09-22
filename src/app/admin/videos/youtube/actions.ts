@@ -61,9 +61,12 @@ export async function deleteAd(adId: string, adType: string) {
     const { data: adData } = await supabase.from('ads').select('url').eq('id', adId).single();
     if (adData && adType === 'whatsapp') {
         try {
-            const filePath = adData.url.split('/public/').pop();
+            // Extract the path from the full URL
+            const url = new URL(adData.url);
+            const filePath = url.pathname.split('/whatsapp_ads/').pop(); // Get path after bucket name
+            
             if (filePath) {
-                 await supabase.storage.from('public').remove([filePath]);
+                 await supabase.storage.from('whatsapp_ads').remove([filePath]);
             }
         } catch(e) {
             console.error("Could not delete from storage", e);

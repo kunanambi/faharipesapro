@@ -16,23 +16,23 @@ export async function addWhatsAppAd(formData: FormData) {
         return { error: 'Missing required fields: title, reward amount, or media file.' };
     }
 
-    // 1. Upload file to Supabase Storage
+    // 1. Upload file to Supabase Storage in the correct bucket
     const fileExt = mediaFile.name.split('.').pop();
-    const fileName = `whatsapp/${Date.now()}.${fileExt}`; // Added a folder for organization
+    const fileName = `uploads/${Date.now()}.${fileExt}`; // Added a folder for organization
     const filePath = fileName;
 
     const { error: uploadError } = await supabase.storage
-        .from('public') 
+        .from('whatsapp_ads') 
         .upload(filePath, mediaFile);
 
     if (uploadError) {
         console.error('Error uploading file:', uploadError);
-        return { error: 'Failed to upload media file.' };
+        return { error: 'Failed to upload media file. Make sure the "whatsapp_ads" bucket is public.' };
     }
 
     // 2. Get the public URL of the uploaded file
     const { data: urlData } = supabase.storage
-        .from('public') 
+        .from('whatsapp_ads') 
         .getPublicUrl(filePath);
 
     if (!urlData) {
@@ -57,7 +57,7 @@ export async function addWhatsAppAd(formData: FormData) {
     if (insertError) {
         console.error(`Error adding WhatsApp ad:`, insertError);
         // Optionally, delete the uploaded file if the DB insert fails
-        await supabase.storage.from('public').remove([filePath]);
+        await supabase.storage.from('whatsapp_ads').remove([filePath]);
         return { error: insertError.message };
     }
 
