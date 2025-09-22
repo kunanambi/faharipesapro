@@ -1,8 +1,9 @@
+
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const segments = [
   { color: "#8E44AD", label: "500" },
@@ -22,13 +23,24 @@ export function SpinWheel() {
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const { toast } = useToast();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Initialize audio only on the client side
+    audioRef.current = new Audio('/sounds/spin-tick.mp3');
+    audioRef.current.loop = true;
+  }, []);
 
   const handleSpin = () => {
     if (isSpinning) return;
     setIsSpinning(true);
 
-    const randomSpins = Math.floor(Math.random() * 5) + 5; // 5 to 10 full spins
-    const randomStop = Math.floor(Math.random() * 360); // Random stop angle
+    if (audioRef.current) {
+        audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+    }
+
+    const randomSpins = Math.floor(Math.random() * 5) + 5;
+    const randomStop = Math.floor(Math.random() * 360);
     const newRotation = rotation + (randomSpins * 360) + randomStop;
 
     setRotation(newRotation);
@@ -43,61 +55,63 @@ export function SpinWheel() {
         description: `You won: ${prize}`,
       });
       setIsSpinning(false);
-    }, 5000); // Corresponds to transition duration
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }, 6000); // Increased duration for a longer spin
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center select-none">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-16 border-l-transparent border-r-transparent border-t-primary z-10 drop-shadow-lg" style={{borderTopWidth: '16px'}}></div>
+    <div className="relative flex flex-col items-center justify-center select-none w-full max-w-xs mx-auto">
+      {/* Pointer */}
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-20" style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}>
+         <div className="w-0 h-0 border-l-[15px] border-r-[15px] border-t-[30px] border-l-transparent border-r-transparent border-t-primary" />
+      </div>
+
+      {/* Wheel */}
       <div
-        className="relative w-64 h-64 rounded-full border-4 border-primary/50 shadow-inner overflow-hidden transition-transform duration-[5000ms] ease-out"
+        className="relative w-72 h-72 rounded-full border-8 border-primary/80 bg-gray-200 shadow-2xl overflow-hidden transition-transform duration-[6000ms] ease-[cubic-bezier(0.1,0.7,0.3,1)]"
         style={{ transform: `rotate(${rotation}deg)` }}
       >
-        {segments.map((seg, i) => (
-          <div
-            key={i}
-            className="absolute w-1/2 h-full origin-right"
-            style={{
-              transform: `rotate(${i * angle}deg)`,
-              clipPath: `polygon(0 0, 100% 0, 100% 100%, 0 100%, 50% 50%)`,
-            }}
-          >
+        {segments.map((seg, i) => {
+          const rotationAngle = i * angle;
+          return (
             <div
-              className="absolute w-full h-full"
+              key={i}
+              className="absolute w-1/2 h-full origin-right"
               style={{
-                background: seg.color,
-                clipPath: `polygon(100% 0, 0 50%, 100% 100%)`,
-                transform: 'rotate(-67.5deg)',
-                transformOrigin: '50% 50%'
+                transform: `rotate(${rotationAngle}deg)`,
               }}
             >
               <div
-                className="flex items-center justify-center h-full w-full text-white font-bold text-sm"
-                style={{ transform: `rotate(${angle / 2 + 90}deg) translate(0, -70px)`}}
+                className="w-full h-full"
+                style={{
+                  backgroundColor: seg.color,
+                  clipPath: 'polygon(0% 0%, 100% 50%, 0% 100%)',
+                  transform: `rotate(${angle / 2}deg)`,
+                  transformOrigin: '100% 50%',
+                }}
               >
-                {seg.label}
+                <div
+                  className="absolute w-full h-full flex items-center justify-center"
+                  style={{
+                    transform: `rotate(${angle / 2}deg) translate(25%, 0) rotate(-${angle}deg)`,
+                  }}
+                >
+                  <span className="text-white font-bold text-sm -rotate-90 block w-max">{seg.label}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-         <div
-          className="absolute w-full h-full"
-          style={{ transform: `rotate(${angle / 2}deg)` }}
-        >
-          {segments.map((seg, i) => (
-            <div
-              key={i}
-              className="absolute w-1/2 h-full text-white font-bold text-lg flex items-center justify-center origin-right"
-              style={{ transform: `rotate(${i * angle}deg) translateX(50%)` }}
-            >
-              <span className="-rotate-90 ">{/*seg.label*/}</span>
-            </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-       <div className="absolute w-16 h-16 bg-white rounded-full border-4 border-primary/50 flex items-center justify-center shadow-lg">
-       </div>
-      <Button onClick={handleSpin} disabled={isSpinning} className="mt-8">
+      
+       {/* Center Hub */}
+      <div className="absolute w-16 h-16 bg-gradient-to-br from-yellow-300 to-amber-500 rounded-full border-4 border-white flex items-center justify-center shadow-inner z-10">
+      </div>
+
+      <Button onClick={handleSpin} disabled={isSpinning} className="mt-12 text-lg font-bold py-6 px-10 rounded-full shadow-lg bg-primary hover:bg-primary/90">
         {isSpinning ? "Inazunguka..." : "Zungusha Sasa"}
       </Button>
     </div>
