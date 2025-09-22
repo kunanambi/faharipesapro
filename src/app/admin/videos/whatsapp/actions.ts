@@ -4,7 +4,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-// Ensure the file exists before using it
+// Converts a file to a Base64 data URI
+async function fileToDataUri(file: File): Promise<string> {
+    const buffer = await file.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    return `data:${file.type};base64,${base64}`;
+}
+
 export async function addWhatsAppAd(formData: FormData) {
     const supabase = createClient();
 
@@ -16,41 +22,17 @@ export async function addWhatsAppAd(formData: FormData) {
         return { error: 'Missing required fields: title, reward amount, or media file.' };
     }
 
-    // 1. Upload file to Supabase Storage in the correct bucket
-    const fileExt = mediaFile.name.split('.').pop();
-    // Corrected file path: Do not include "uploads/" here. It will be part of the file name itself.
-    const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = fileName;
+    // Convert the file to a Base64 data URI
+    const mediaDataUri = await fileToDataUri(mediaFile);
 
-    const { error: uploadError } = await supabase.storage
-        .from('whatsapp_ads') 
-        .upload(filePath, mediaFile);
-
-    if (uploadError) {
-        console.error('Error uploading file:', uploadError);
-        return { error: 'Failed to upload media file. Make sure the "whatsapp_ads" bucket is public.' };
-    }
-
-    // 2. Get the public URL of the uploaded file
-    const { data: urlData } = supabase.storage
-        .from('whatsapp_ads') 
-        .getPublicUrl(filePath);
-
-    if (!urlData) {
-        return { error: 'Failed to get public URL for the media file.' };
-    }
-    
-    const publicUrl = urlData.publicUrl;
-
-
-    // 3. Insert the ad into the 'ads' table
+    // Insert the ad into the 'ads' table with the data URI in the 'url' column
     const { data, error: insertError } = await supabase
         .from('ads')
         .insert({
             title,
             reward_amount,
             ad_type: 'whatsapp',
-            url: publicUrl,
+            url: mediaDataUri, // Store the Base64 string here
             is_active: true,
         })
         .select()
@@ -58,8 +40,6 @@ export async function addWhatsAppAd(formData: FormData) {
     
     if (insertError) {
         console.error(`Error adding WhatsApp ad:`, insertError);
-        // Optionally, delete the uploaded file if the DB insert fails
-        await supabase.storage.from('whatsapp_ads').remove([filePath]);
         return { error: insertError.message };
     }
 
@@ -67,4 +47,3 @@ export async function addWhatsAppAd(formData: FormData) {
     revalidatePath('/earn/whatsapp');
     return { data, error: null };
 }
-
