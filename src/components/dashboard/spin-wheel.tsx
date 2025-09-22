@@ -59,7 +59,7 @@ export function SpinWheel() {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
-    }, 6000); // Increased duration for a longer spin
+    }, 3000); // Changed duration to 3 seconds
   };
 
   return (
@@ -71,7 +71,7 @@ export function SpinWheel() {
 
       {/* Wheel */}
       <div
-        className="relative w-72 h-72 rounded-full border-8 border-primary/80 bg-gray-200 shadow-2xl overflow-hidden transition-transform duration-[6000ms] ease-[cubic-bezier(0.1,0.7,0.3,1)]"
+        className="relative w-72 h-72 rounded-full border-8 border-primary/80 bg-gray-200 shadow-2xl overflow-hidden transition-transform duration-[3000ms] ease-[cubic-bezier(0.1,0.7,0.3,1)]"
         style={{ transform: `rotate(${rotation}deg)` }}
       >
         {segments.map((seg, i) => {
