@@ -21,6 +21,7 @@ import {
   Cog,
   User,
   DollarSign,
+  Bell,
 } from "lucide-react";
 
 const AdminNav = () => {
@@ -54,6 +55,14 @@ const AdminNav = () => {
                     <Link href="/admin/withdrawals">
                         <DollarSign />
                         <span>Withdrawals</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Offer Notification" isActive={pathname === "/admin/notification"} onClick={handleLinkClick}>
+                    <Link href="/admin/notification">
+                        <Bell />
+                        <span>Notification</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
