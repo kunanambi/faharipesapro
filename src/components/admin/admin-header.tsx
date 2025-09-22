@@ -1,3 +1,4 @@
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -10,6 +11,7 @@ import {
 import { Button } from "../ui/button";
 import { LogOut, MoreVertical, Menu, User } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
 const FahariLogo = () => (
     <div className="relative w-8 h-8">
@@ -23,7 +25,14 @@ const FahariLogo = () => (
 );
 
 
-export function AdminHeader() {
+export async function AdminHeader() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const userName = user?.user_metadata?.full_name || "Admin";
+  const userEmail = user?.email || "admin@fahari.com";
+
+
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-card/80 px-4 backdrop-blur-sm md:px-6">
       <div className="flex items-center gap-2">
@@ -49,9 +58,9 @@ export function AdminHeader() {
           <DropdownMenuContent className="w-56" align="end">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Admin</p>
+                <p className="text-sm font-medium leading-none">{userName}</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  admin@fahari.com
+                  {userEmail}
                 </p>
               </div>
             </DropdownMenuLabel>

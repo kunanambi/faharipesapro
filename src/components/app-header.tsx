@@ -1,3 +1,4 @@
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -7,11 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { LogOut, Settings, User, MoreVertical, Menu } from "lucide-react";
 import Link from "next/link";
-import { DollarSign } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
 const FahariLogo = () => (
     <div className="relative w-8 h-8">
@@ -25,7 +25,13 @@ const FahariLogo = () => (
 );
 
 
-export function AppHeader() {
+export async function AppHeader() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const userName = user?.user_metadata?.full_name || "Fahari User";
+  const userEmail = user?.email || "user@fahari.com";
+
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-card/80 px-4 backdrop-blur-sm md:px-6">
       <div className="flex items-center gap-2">
@@ -51,9 +57,9 @@ export function AppHeader() {
           <DropdownMenuContent className="w-56" align="end">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">Fahari User</p>
+                <p className="text-sm font-medium leading-none">{userName}</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  user@fahari.com
+                  {userEmail}
                 </p>
               </div>
             </DropdownMenuLabel>
