@@ -4,6 +4,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+const VAT_RATE = 0.06;
+
 export async function approveWithdrawal(withdrawalId: string) {
     const supabase = createClient();
     
@@ -45,7 +47,10 @@ export async function rejectWithdrawal(withdrawalId: string) {
         return { error: "This request has already been processed." };
     }
 
-    // 2. Return the amount to the user's balance
+    // 2. Calculate the total amount to refund (withdrawal amount + VAT)
+    const totalToRefund = withdrawal.amount * (1 + VAT_RATE);
+
+    // 3. Return the amount to the user's balance
     const { data: user, error: userError } = await supabase
         .from('users')
         .select('balance')
@@ -57,7 +62,7 @@ export async function rejectWithdrawal(withdrawalId: string) {
         return { error: "Could not find the user to refund." };
     }
 
-    const newBalance = (user.balance || 0) + withdrawal.amount;
+    const newBalance = (user.balance || 0) + totalToRefund;
     const { error: balanceError } = await supabase
         .from('users')
         .update({ balance: newBalance })
@@ -68,7 +73,7 @@ export async function rejectWithdrawal(withdrawalId: string) {
         return { error: "Failed to refund the user's balance." };
     }
 
-    // 3. Mark the withdrawal as rejected
+    // 4. Mark the withdrawal as rejected
     const { data, error: rejectError } = await supabase
         .from('withdrawals')
         .update({ status: 'rejected' })

@@ -13,12 +13,18 @@ interface WithdrawalRequest {
     username: string;
 }
 
+const VAT_RATE = 0.06; // 6%
+
 export async function requestWithdrawal(input: WithdrawalRequest) {
     const supabase = createClient();
 
     const { userId, username, amount, phone_number, registration_name, network } = input;
 
-    // 1. Get user's current balance
+    // 1. Calculate VAT and total deduction
+    const vatAmount = amount * VAT_RATE;
+    const totalDeduction = amount + vatAmount;
+
+    // 2. Get user's current balance
     const { data: userData, error: userError } = await supabase
         .from('users')
         .select('balance')
@@ -31,12 +37,12 @@ export async function requestWithdrawal(input: WithdrawalRequest) {
     }
 
     const currentBalance = userData.balance || 0;
-    if (amount > currentBalance) {
-        return { error: 'Insufficient balance.' };
+    if (totalDeduction > currentBalance) {
+        return { error: 'Insufficient balance to cover the withdrawal amount and VAT.' };
     }
 
-    // 2. Deduct amount from user's balance
-    const newBalance = currentBalance - amount;
+    // 3. Deduct total amount (amount + VAT) from user's balance
+    const newBalance = currentBalance - totalDeduction;
     const { error: balanceError } = await supabase
         .from('users')
         .update({ balance: newBalance })
@@ -47,13 +53,13 @@ export async function requestWithdrawal(input: WithdrawalRequest) {
         return { error: 'Failed to update balance.' };
     }
 
-    // 3. Create a withdrawal record
+    // 4. Create a withdrawal record
     const { data: withdrawalData, error: withdrawalError } = await supabase
         .from('withdrawals')
         .insert({
             user_id: userId,
             user_username: username,
-            amount,
+            amount, // The requested amount, not the total deduction
             phone_number,
             registration_name,
             network,

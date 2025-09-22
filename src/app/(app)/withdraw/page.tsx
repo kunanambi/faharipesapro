@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const MINIMUM_WITHDRAWAL = 4800;
+const VAT_RATE = 0.06; // 6%
 
 const formSchema = z.object({
   amount: z.coerce.number().min(MINIMUM_WITHDRAWAL, { message: `Minimum withdrawal amount is TZS ${MINIMUM_WITHDRAWAL}.` }),
@@ -78,6 +79,10 @@ export default function WithdrawPage() {
     },
   });
 
+  const watchAmount = form.watch("amount");
+  const vatAmount = watchAmount * VAT_RATE;
+  const totalDeduction = watchAmount + vatAmount;
+
   useEffect(() => {
     if (phone) form.setValue("phone_number", phone);
     if (fullName) form.setValue("registration_name", fullName);
@@ -89,8 +94,9 @@ export default function WithdrawPage() {
       return;
     }
     
-    if (values.amount > balance) {
-        form.setError("amount", { type: "manual", message: "You do not have enough balance." });
+    const totalToDeduct = values.amount * (1 + VAT_RATE);
+    if (totalToDeduct > balance) {
+        form.setError("amount", { type: "manual", message: "You do not have enough balance to cover the amount and VAT." });
         return;
     }
 
@@ -107,7 +113,7 @@ export default function WithdrawPage() {
         title: "Request Sent",
         description: "Your withdrawal request has been received and is being processed.",
       });
-      const newBalance = balance - values.amount;
+      const newBalance = balance - totalToDeduct;
       setBalance(newBalance);
       setWithdrawals([result.data as Withdrawal, ...withdrawals]);
       form.reset({ amount: MINIMUM_WITHDRAWAL, phone_number: phone, registration_name: fullName });
@@ -142,7 +148,7 @@ export default function WithdrawPage() {
         <CardHeader>
           <CardTitle>Withdrawal Form</CardTitle>
           <CardDescription>
-            The minimum withdrawal amount is {formatCurrency(MINIMUM_WITHDRAWAL)}. A 6% VAT fee will be deducted.
+            The minimum withdrawal amount is {formatCurrency(MINIMUM_WITHDRAWAL)}. A 6% VAT will be added to the withdrawn amount.
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -153,7 +159,7 @@ export default function WithdrawPage() {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Amount to Withdraw</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="Enter amount..." {...field} />
                     </FormControl>
@@ -211,6 +217,20 @@ export default function WithdrawPage() {
                   </FormItem>
                 )}
               />
+              <div className="rounded-md border border-dashed p-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Withdrawal Amount:</span>
+                      <span className="font-medium">{formatCurrency(watchAmount || 0)}</span>
+                  </div>
+                   <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">VAT (6%):</span>
+                      <span className="font-medium text-red-500">{formatCurrency(vatAmount)}</span>
+                  </div>
+                   <div className="flex justify-between text-base font-bold border-t pt-2 mt-2">
+                      <span>Total Debit:</span>
+                      <span>{formatCurrency(totalDeduction)}</span>
+                  </div>
+              </div>
             </CardContent>
             <CardFooter>
               <Button type="submit" disabled={isSubmitting}>
