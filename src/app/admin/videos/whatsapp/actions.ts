@@ -18,7 +18,7 @@ export async function addWhatsAppAd(formData: FormData) {
 
     // 1. Upload file to Supabase Storage in the correct bucket
     const fileExt = mediaFile.name.split('.').pop();
-    const fileName = `uploads/${Date.now()}.${fileExt}`; // Added a folder for organization
+    const fileName = `uploads/${Date.now()}.${fileExt}`;
     const filePath = fileName;
 
     const { error: uploadError } = await supabase.storage
