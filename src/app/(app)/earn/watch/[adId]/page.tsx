@@ -127,6 +127,7 @@ function WhatsAppAdContent({ ad, user }: { ad: Ad, user: PublicUser }) {
 
 
 export default function WatchAdPage({ params }: { params: { adId: string } }) {
+    const { adId } = params;
     const supabase = createClient();
     const router = useRouter();
     const [ad, setAd] = useState<Ad | null>(null);
@@ -159,7 +160,7 @@ export default function WatchAdPage({ params }: { params: { adId: string } }) {
             const { data: adData, error: adError } = await supabase
                 .from('ads')
                 .select('*')
-                .eq('id', params.adId)
+                .eq('id', adId)
                 .eq('is_active', true)
                 .single();
 
@@ -174,7 +175,7 @@ export default function WatchAdPage({ params }: { params: { adId: string } }) {
                 .from('user_watched_ads')
                 .select('ad_id')
                 .eq('user_id', authUser.id)
-                .eq('ad_id', params.adId)
+                .eq('ad_id', adId)
                 .single();
             
             if (watchedAd) {
@@ -186,7 +187,7 @@ export default function WatchAdPage({ params }: { params: { adId: string } }) {
         };
         
         fetchData();
-    }, [params.adId, supabase, router]);
+    }, [adId, supabase, router]);
 
     if (loading || !ad || !user) {
         return (
