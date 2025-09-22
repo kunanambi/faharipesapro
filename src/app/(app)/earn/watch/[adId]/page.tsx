@@ -55,7 +55,7 @@ function WhatsAppAdContent({ ad, user }: { ad: Ad, user: PublicUser }) {
 
     useEffect(() => {
         if (viewsCount && Number(viewsCount) > 0) {
-            const whatsappNumber = "+255768525345";
+            const whatsappNumber = "255768525345"; // Removed '+' from the number
             const whatsappMessage = `Hi Sir, I have shared the ad "${ad.title}" on my status. I got ${viewsCount} views. Please verify and credit my account. Username: ${user.username}`;
             const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
             setWhatsappUrl(url);
