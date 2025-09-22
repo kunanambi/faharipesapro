@@ -16,9 +16,14 @@ export async function claimReward(formData: FormData) {
     const adId = formData.get('adId') as string;
     const adType = formData.get('adType') as string;
     const rewardAmount = parseFloat(formData.get('rewardAmount') as string);
+    const viewsCount = formData.get('views_count') ? parseInt(formData.get('views_count') as string, 10) : null;
 
     if (!adId || isNaN(rewardAmount) || !adType) {
         return { error: 'Invalid ad data.' };
+    }
+    
+    if (adType === 'whatsapp' && (viewsCount === null || isNaN(viewsCount) || viewsCount < 0)) {
+        return { error: 'Please provide a valid number of views.' };
     }
 
     // Double check they haven't already watched it
@@ -36,9 +41,17 @@ export async function claimReward(formData: FormData) {
     }
 
     // 1. Add record to user_watched_ads
+    const insertData: { user_id: string; ad_id: string; views_count?: number | null } = { 
+        user_id: user.id, 
+        ad_id: adId 
+    };
+    if (viewsCount !== null) {
+        insertData.views_count = viewsCount;
+    }
+
     const { error: watchError } = await supabase
         .from('user_watched_ads')
-        .insert({ user_id: user.id, ad_id: adId });
+        .insert(insertData);
     
     if (watchError) {
         console.error("Error recording watched ad:", watchError);
