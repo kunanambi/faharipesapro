@@ -94,7 +94,7 @@ export default function AdminSpinSettingsPage() {
                         </div>
                     ) : settings ? (
                         <form ref={formRef} action={handleFormSubmit} className="space-y-6">
-                            <div className="flex items-center justify-between space-x-4 rounded-md border p-4">
+                             <div className="flex items-center justify-between space-x-4 rounded-md border p-4">
                                 <div className="flex-1 space-y-1">
                                     <Label htmlFor="is_active" className="text-base font-medium">
                                         Enable Spin Wheel
