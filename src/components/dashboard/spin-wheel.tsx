@@ -4,59 +4,74 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-
-// Updated segments based on the provided image
-const segments = [
-    { color: "#6A3B99", label: "TSH 150" },   // Purple
-    { color: "#55A630", label: "TSH 500" },   // Green
-    { color: "#E5383B", label: "TSH 1,000" }, // Red
-    { color: "#C71F66", label: "TSH 2,050" }, // Magenta
-    { color: "#F07167", label: "TSH 10,000" },// Orange-Red
-    { color: "#0B4DA0", label: "TRY AGAIN" }, // Dark Blue
-    { color: "#0081A7", label: "TSH 1,500" }, // Teal
-    { color: "#007200", label: "TSH 1,350" }, // Dark Green
-    { color: "#FFC300", label: "TSH 100" },   // Yellow
-    { color: "#D4A373", label: "TSH 150" },   // Gold
-];
-
-const segCount = segments.length;
-const angle = 360 / segCount;
+import type { SpinConfig } from "@/lib/types";
+import { Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export function SpinWheel() {
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [segments, setSegments] = useState<SpinConfig[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Initialize audio only on the client side
     audioRef.current = new Audio('/sounds/spin-tick.mp3');
     audioRef.current.loop = true;
-  }, []);
+
+    const fetchSpinConfig = async () => {
+        const supabase = createClient();
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('spin_configurations')
+            .select('*')
+            .order('spin_order', { ascending: true });
+        
+        if (error) {
+            toast({ title: "Error", description: "Could not load spin wheel settings." });
+            setSegments([]);
+        } else {
+            setSegments(data as SpinConfig[]);
+        }
+        setLoading(false);
+    }
+
+    fetchSpinConfig();
+
+  }, [toast]);
 
   const handleSpin = () => {
-    if (isSpinning) return;
+    if (isSpinning || segments.length === 0) return;
     setIsSpinning(true);
 
     if (audioRef.current) {
         audioRef.current.play().catch(e => console.error("Audio play failed:", e));
     }
 
-    const randomSpins = Math.floor(Math.random() * 5) + 5;
-    const randomStop = Math.floor(Math.random() * 360);
-    const newRotation = rotation + (randomSpins * 360) + randomStop;
+    const randomSpins = Math.floor(Math.random() * 5) + 5; // Revolutions
+    const randomStopAngle = Math.floor(Math.random() * 360); // Random stop position
+    const newRotation = rotation + (randomSpins * 360) + randomStopAngle;
 
     setRotation(newRotation);
 
     setTimeout(() => {
-      const actualRotation = newRotation % 360;
-      const winningSegmentIndex = Math.floor((360 - actualRotation + angle / 2) % 360 / angle);
-      const prize = segments[winningSegmentIndex].label;
+      const anglePerSegment = 360 / segments.length;
+      const finalRotation = newRotation % 360;
+      // The pointer is at the top (0 degrees), but CSS rotate starts from the right. We adjust by 90 degrees.
+      // We also add half a segment angle to center the pointer within a segment.
+      const winningSegmentIndex = Math.floor(((360 - finalRotation + 90 + anglePerSegment / 2) % 360) / anglePerSegment);
+      
+      const prize = segments[winningSegmentIndex]?.prize_label;
 
-      toast({
-        title: "Congratulations!",
-        description: `You won: ${prize}`,
-      });
+      if (prize) {
+          toast({
+            title: prize === "TRY AGAIN" ? "Better luck next time!" : "Congratulations!",
+            description: prize !== "TRY AGAIN" ? `You won: ${prize}` : "You can spin again tomorrow.",
+            variant: prize === "TRY AGAIN" ? "destructive" : "default",
+          });
+      }
+
       setIsSpinning(false);
       if (audioRef.current) {
         audioRef.current.pause();
@@ -64,6 +79,16 @@ export function SpinWheel() {
       }
     }, 3000); // 3-second spin duration
   };
+
+  const angle = segments.length > 0 ? 360 / segments.length : 0;
+
+  if (loading) {
+    return <div className="flex flex-col items-center justify-center h-80"><Loader2 className="h-10 w-10 animate-spin" /><p className="mt-4">Loading Wheel...</p></div>
+  }
+
+  if (segments.length === 0) {
+    return <div className="text-center h-80 flex items-center justify-center">The spin wheel is not configured yet.</div>
+  }
 
   return (
     <div className="relative flex flex-col items-center justify-center select-none w-full max-w-sm mx-auto">
@@ -94,7 +119,7 @@ export function SpinWheel() {
               <div
                 className="w-full h-full"
                 style={{
-                  backgroundColor: seg.color,
+                  backgroundColor: seg.prize_color,
                   clipPath: 'polygon(0 0, 100% 50%, 0 100%)',
                   transform: 'translateX(-0.5px) rotate(0.5deg)', // Small gap fix
                 }}
@@ -109,7 +134,7 @@ export function SpinWheel() {
                     className="text-white font-bold text-lg -rotate-90 block w-max"
                     style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
                   >
-                      {seg.label}
+                      {seg.prize_label}
                   </span>
                 </div>
               </div>

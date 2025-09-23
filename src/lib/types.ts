@@ -1,4 +1,5 @@
 
+
 export type PublicUser = {
   id: string;
   created_at: string | null;
@@ -52,4 +53,12 @@ export type Withdrawal = {
     full_name: string | null;
     email: string | null;
   }
+};
+
+export type SpinConfig = {
+  id: number;
+  spin_order: number;
+  prize_label: string;
+  prize_color: string;
+  created_at: string;
 };
