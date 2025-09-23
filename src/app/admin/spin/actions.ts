@@ -4,57 +4,47 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-interface SpinConfigInput {
-    prize_label: string;
-    prize_color: string;
+interface SpinPrizesInput {
+    round1_prize: string;
+    round2_prize: string;
+    round3_prize: string;
 }
 
-export async function getSpinConfigs() {
+// Fetches the current spin prizes for the admin form
+export async function getSpinPrizes() {
     const supabase = createClient();
     const { data, error } = await supabase
         .from('spin_configurations')
-        .select('*')
-        .order('spin_order', { ascending: true });
+        .select('round1_prize, round2_prize, round3_prize')
+        .eq('id', 1)
+        .single();
     
     if (error) {
-        console.error("Error fetching spin configs:", error);
-        return [];
+        console.error("Error fetching spin prizes:", error);
+        return null;
     }
     return data;
 }
 
-export async function addSpinConfig(input: SpinConfigInput) {
+// Updates the spin prizes
+export async function updateSpinPrizes(input: SpinPrizesInput) {
     const supabase = createClient();
     
-    // First, find the highest current spin_order
-    const { data: maxOrderData, error: maxOrderError } = await supabase
-        .from('spin_configurations')
-        .select('spin_order')
-        .order('spin_order', { ascending: false })
-        .limit(1)
-        .single();
-    
-    if (maxOrderError && maxOrderError.code !== 'PGRST116') { // PGRST116: No rows found, which is fine
-        console.error("Error getting max spin order:", maxOrderError);
-        return { error: 'Could not determine spin order.' };
-    }
-    
-    const newOrder = (maxOrderData?.spin_order || 0) + 1;
-
-    // Now, insert the new config
     const { data, error } = await supabase
         .from('spin_configurations')
-        .insert({
-            spin_order: newOrder,
-            prize_label: input.prize_label,
-            prize_color: input.prize_color,
+        .update({
+            round1_prize: input.round1_prize,
+            round2_prize: input.round2_prize,
+            round3_prize: input.round3_prize,
+            updated_at: new Date().toISOString(),
         })
+        .eq('id', 1)
         .select()
         .single();
 
     if (error) {
-        console.error("Error adding spin config:", error);
-        return { error: 'Failed to add new spin prize.' };
+        console.error("Error updating spin prizes:", error);
+        return { error: 'Failed to update spin prizes.' };
     }
     
     revalidatePath('/admin/spin');
@@ -62,38 +52,46 @@ export async function addSpinConfig(input: SpinConfigInput) {
     return { data, error: null };
 }
 
-export async function deleteSpinConfig(id: number) {
+// Action for when a user completes a spin round
+export async function claimSpinPrize(prizeAmount: number) {
     const supabase = createClient();
-    const { error } = await supabase
-        .from('spin_configurations')
-        .delete()
-        .eq('id', id);
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (error) {
-        console.error("Error deleting spin config:", error);
-        return { error: 'Failed to delete spin prize.' };
-    }
-
-    // After deleting, we need to re-order the remaining items to ensure the sequence is contiguous
-    const { data: remainingConfigs, error: fetchError } = await supabase
-        .from('spin_configurations')
-        .select('id')
-        .order('spin_order', { ascending: true });
-    
-    if (fetchError) {
-        console.error("Error fetching configs to re-order:", fetchError);
-        // Deletion was successful, but re-ordering failed. Not ideal but not a critical failure.
-    } else {
-        const updates = remainingConfigs.map((config, index) => 
-            supabase
-                .from('spin_configurations')
-                .update({ spin_order: index + 1 })
-                .eq('id', config.id)
-        );
-        await Promise.all(updates);
+    if (!user) {
+        return { error: 'You must be logged in to claim a prize.' };
     }
     
-    revalidatePath('/admin/spin');
-    revalidatePath('/spin');
+    if (prizeAmount <= 0) {
+        return { error: null }; // No prize to claim
+    }
+
+    // Fetch user's current balance and total earnings
+    const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('balance, total_earnings')
+        .eq('id', user.id)
+        .single();
+    
+    if (userError || !userData) {
+        console.error("Error fetching user data:", userError);
+        return { error: 'Could not fetch your profile to update balance.' };
+    }
+
+    // Update balance and total earnings
+    const newBalance = (userData.balance || 0) + prizeAmount;
+    const newTotalEarnings = (userData.total_earnings || 0) + prizeAmount;
+    const { error: balanceError } = await supabase
+        .from('users')
+        .update({ balance: newBalance, total_earnings: newTotalEarnings })
+        .eq('id', user.id);
+
+    if (balanceError) {
+        console.error("Error updating balance/earnings for spin prize:", balanceError);
+        return { error: 'Could not update your balance.' };
+    }
+
+    // Revalidate paths to show updated data
+    revalidatePath('/dashboard');
+    
     return { error: null };
 }

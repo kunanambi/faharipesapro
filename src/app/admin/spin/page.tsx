@@ -7,199 +7,105 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Loader2, RefreshCw } from "lucide-react";
-import { addSpinConfig, getSpinConfigs, deleteSpinConfig } from "./actions";
-import type { SpinConfig } from "@/lib/types";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Loader2, RefreshCw } from "lucide-react";
+import { getSpinPrizes, updateSpinPrizes } from "./actions";
 import { cn } from "@/lib/utils";
 
-const PRESET_COLORS = [
-    "#6A3B99", "#55A630", "#E5383B", "#C71F66", "#F07167", 
-    "#0B4DA0", "#0081A7", "#007200", "#FFC300", "#D4A373"
-];
+interface SpinPrizes {
+    round1_prize: string;
+    round2_prize: string;
+    round3_prize: string;
+}
 
 export default function AdminSpinSettingsPage() {
     const { toast } = useToast();
     const formRef = useRef<HTMLFormElement>(null);
-    const [configs, setConfigs] = useState<SpinConfig[]>([]);
+    const [prizes, setPrizes] = useState<SpinPrizes | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
 
-    const fetchConfigs = async () => {
+    const fetchPrizes = async () => {
         setLoading(true);
-        const fetchedConfigs = await getSpinConfigs();
-        setConfigs(fetchedConfigs);
+        const fetchedPrizes = await getSpinPrizes();
+        if (fetchedPrizes) {
+            setPrizes(fetchedPrizes);
+        } else {
+             toast({ title: "Error", description: "Could not load spin settings. Make sure you have run the required SQL setup.", variant: "destructive"});
+        }
         setLoading(false);
     };
 
     useEffect(() => {
-        fetchConfigs();
+        fetchPrizes();
     }, []);
 
     const handleFormSubmit = async (formData: FormData) => {
         setIsSubmitting(true);
-        const prizeLabel = formData.get('prize_label') as string;
+        const newPrizes = {
+            round1_prize: formData.get('round1_prize') as string,
+            round2_prize: formData.get('round2_prize') as string,
+            round3_prize: formData.get('round3_prize') as string,
+        };
 
-        if (!prizeLabel || !selectedColor) {
-            toast({ title: "Error", description: "Label and color are required.", variant: "destructive"});
-            setIsSubmitting(false);
-            return;
-        }
-
-        const result = await addSpinConfig({ prize_label: prizeLabel, prize_color: selectedColor });
+        const result = await updateSpinPrizes(newPrizes);
 
         if (result.error) {
             toast({ title: "Error", description: result.error, variant: "destructive"});
         } else {
-            toast({ title: "Success", description: "Spin configuration added."});
-            setConfigs(prev => [...prev, result.data as SpinConfig].sort((a, b) => a.spin_order - b.spin_order));
-            formRef.current?.reset();
-            // Cycle to the next color for convenience
-            const nextColorIndex = (PRESET_COLORS.indexOf(selectedColor) + 1) % PRESET_COLORS.length;
-            setSelectedColor(PRESET_COLORS[nextColorIndex]);
+            toast({ title: "Success", description: "Spin prizes have been updated."});
+            if(result.data) {
+                setPrizes(result.data);
+            }
         }
         setIsSubmitting(false);
     };
     
-    const handleDelete = async (id: number) => {
-        const result = await deleteSpinConfig(id);
-        if (result.error) {
-            toast({ title: "Error", description: result.error, variant: "destructive"});
-        } else {
-            toast({ title: "Success", description: "Spin configuration deleted."});
-            setConfigs(prev => prev.filter(c => c.id !== id));
-        }
-    }
-
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="font-headline text-3xl font-bold">Spin Wheel Settings</h1>
-                    <p className="text-muted-foreground">Define the prizes and appearance of the spin wheel.</p>
+                    <h1 className="font-headline text-3xl font-bold">Spin Prize Settings</h1>
+                    <p className="text-muted-foreground">Define the prizes for each of the 3 spin rounds.</p>
                 </div>
-                <Button onClick={fetchConfigs} variant="outline" size="icon" disabled={loading}>
+                <Button onClick={fetchPrizes} variant="outline" size="icon" disabled={loading}>
                     <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
                 </Button>
             </div>
             <Card>
                 <CardHeader>
-                    <CardTitle>Add New Spin Prize</CardTitle>
+                    <CardTitle>Set Spin Prizes</CardTitle>
                     <CardDescription>
-                        Each prize you add will appear as a segment on the wheel.
+                        When a user plays, they will get these prizes in order for 3 rounds.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form ref={formRef} action={handleFormSubmit} className="space-y-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="prize_label">Prize Label</Label>
-                            <Input id="prize_label" name="prize_label" placeholder="e.g., TSH 100 or TRY AGAIN" required />
+                    {loading ? (
+                         <div className="flex items-center justify-center h-40">
+                            <Loader2 className="h-8 w-8 animate-spin" />
                         </div>
-                        <div className="grid gap-2">
-                            <Label>Prize Color</Label>
-                            <div className="flex flex-wrap gap-2">
-                                {PRESET_COLORS.map(color => (
-                                    <button
-                                        key={color}
-                                        type="button"
-                                        className={cn(
-                                            "h-8 w-8 rounded-full border-2 transition-transform hover:scale-110",
-                                            selectedColor === color ? "border-primary scale-110" : "border-transparent"
-                                        )}
-                                        style={{ backgroundColor: color }}
-                                        onClick={() => setSelectedColor(color)}
-                                    />
-                                ))}
+                    ) : prizes ? (
+                        <form ref={formRef} action={handleFormSubmit} className="space-y-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="round1_prize">Round 1 Prize</Label>
+                                <Input id="round1_prize" name="round1_prize" placeholder="e.g., 100 or TRY AGAIN" required defaultValue={prizes.round1_prize} />
                             </div>
-                        </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="round2_prize">Round 2 Prize</Label>
+                                <Input id="round2_prize" name="round2_prize" placeholder="e.g., 180 or 0" required defaultValue={prizes.round2_prize} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="round3_prize">Round 3 Prize</Label>
+                                <Input id="round3_prize" name="round3_prize" placeholder="e.g., 50 or TRY AGAIN" required defaultValue={prizes.round3_prize} />
+                            </div>
 
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Add Prize
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Current Wheel Segments</CardTitle>
-                     <CardDescription>This is the list of prizes currently on the wheel, in order.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Order</TableHead>
-                                    <TableHead>Prize</TableHead>
-                                    <TableHead>Color</TableHead>
-                                    <TableHead className="text-right">Action</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">Loading...</TableCell>
-                                    </TableRow>
-                                ) : configs.length > 0 ? (
-                                    configs.map((config) => (
-                                        <TableRow key={config.id}>
-                                            <TableCell className="font-medium">{config.spin_order}</TableCell>
-                                            <TableCell>{config.prize_label}</TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="h-4 w-4 rounded-full border" style={{backgroundColor: config.prize_color}} />
-                                                    {config.prize_color}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                            <AlertDialogDescription>
-                                                                This will permanently delete the "{config.prize_label}" segment.
-                                                            </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDelete(config.id)} className="bg-destructive hover:bg-destructive/90">
-                                                                Delete
-                                                            </AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
-                                            No spin configurations found. Add one to get started.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                            <Button type="submit" disabled={isSubmitting}>
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Settings
+                            </Button>
+                        </form>
+                    ) : (
+                        <p className="text-destructive text-center">Could not load settings.</p>
+                    )}
                 </CardContent>
             </Card>
         </div>
