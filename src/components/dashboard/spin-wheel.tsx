@@ -34,11 +34,11 @@ export function SpinWheel({ settings }: { settings: SpinConfig }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Check if the user has already played this version (identified by the config ID)
-    const lastPlayedVersionId = sessionStorage.getItem('lastSpinVersionId');
-    if (lastPlayedVersionId && parseInt(lastPlayedVersionId, 10) === settings.id) {
+    // Check if the user has already played this specific package (identified by the config ID)
+    const lastPlayedPackageId = sessionStorage.getItem('lastSpinPackageId');
+    if (lastPlayedPackageId && parseInt(lastPlayedPackageId, 10) === settings.id) {
         setSessionFinished(true);
-        toast({ title: "Game Over", description: "You have completed all rounds for today. Check back later for a new game!" });
+        toast({ title: "Game Over", description: "You have completed all rounds for this package. Check back later for a new game!" });
     }
 
     // Initialize audio
@@ -103,8 +103,8 @@ export function SpinWheel({ settings }: { settings: SpinConfig }) {
         } else {
             setSessionFinished(true);
             // Mark this specific configuration ID as played
-            sessionStorage.setItem('lastSpinVersionId', settings.id.toString());
-            toast({ title: "Game Over", description: "You have completed all rounds for today." });
+            sessionStorage.setItem('lastSpinPackageId', settings.id.toString());
+            toast({ title: "Game Over", description: "You have completed all rounds for this package." });
         }
   }
 
