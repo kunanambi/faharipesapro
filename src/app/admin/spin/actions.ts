@@ -4,72 +4,69 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-interface SpinSettingsInput {
+interface SpinConfigInput {
     round1_prize: string;
     round2_prize: string;
     round3_prize: string;
-    is_active: boolean; // This can come as a string from FormData, handle it.
 }
 
-// Fetches the current spin settings for the admin form
-export async function getSpinSettings() {
+// Fetches all spin configurations
+export async function getSpinConfigs() {
     const supabase = createClient();
     const { data, error } = await supabase
         .from('spin_configurations')
-        .select('round1_prize, round2_prize, round3_prize, is_active, version')
-        .eq('id', 1)
-        .single();
+        .select('*')
+        .order('created_at', { ascending: false });
     
     if (error) {
-        console.error("Error fetching spin settings:", error);
-        return null;
+        console.error("Error fetching spin configs:", error);
+        return [];
     }
     return data;
 }
 
-// Updates the spin settings and increments the version
-export async function updateSpinSettings(input: SpinSettingsInput) {
+// Adds a new spin configuration
+export async function addSpinConfig(input: SpinConfigInput) {
     const supabase = createClient();
-
-    // First, get the current version
-    const { data: currentData, error: getError } = await supabase
+    const { data, error } = await supabase
         .from('spin_configurations')
-        .select('version')
-        .eq('id', 1)
-        .single();
-    
-    if (getError) {
-        console.error("Error fetching current spin version:", getError);
-        return { error: 'Failed to get current settings version.' };
-    }
-
-    const newVersion = (currentData.version || 0) + 1;
-    
-    // Ensure is_active is a proper boolean
-    const isActiveBoolean = String(input.is_active).toLowerCase() === 'true';
-
-    const { error } = await supabase
-        .from('spin_configurations')
-        .update({
+        .insert({
             round1_prize: input.round1_prize,
             round2_prize: input.round2_prize,
             round3_prize: input.round3_prize,
-            is_active: isActiveBoolean,
-            version: newVersion,
-            updated_at: new Date().toISOString(),
         })
-        .eq('id', 1);
+        .select()
+        .single();
 
     if (error) {
-        console.error("Error updating spin settings:", error);
-        return { error: 'Failed to update spin settings.' };
+        console.error("Error adding spin config:", error);
+        return { error: 'Failed to add new spin package.' };
     }
     
     revalidatePath('/admin/spin');
     revalidatePath('/spin'); // Revalidate the user-facing spin page
     
-    const updatedData = { ...input, is_active: isActiveBoolean, version: newVersion };
-    return { data: updatedData, error: null };
+    return { data, error: null };
+}
+
+// Deletes a spin configuration
+export async function deleteSpinConfig(configId: number) {
+    const supabase = createClient();
+
+    const { error } = await supabase
+        .from('spin_configurations')
+        .delete()
+        .eq('id', configId);
+
+    if (error) {
+        console.error("Error deleting spin config:", error);
+        return { error: 'Failed to delete spin package.' };
+    }
+
+    revalidatePath('/admin/spin');
+    revalidatePath('/spin');
+
+    return { error: null };
 }
 
 // Action for when a user completes a spin round

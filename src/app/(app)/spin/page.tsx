@@ -3,16 +3,23 @@ import { SpinWheel } from "@/components/dashboard/spin-wheel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { AlertCircle } from "lucide-react";
+import type { SpinConfig } from "@/lib/types";
 
 export default async function SpinPage() {
     const supabase = createClient();
-    const { data: spinSettings } = await supabase
+    // Fetch the latest spin configuration
+    const { data: latestSpinConfig, error } = await supabase
         .from('spin_configurations')
-        .select('round1_prize, round2_prize, round3_prize, is_active, version')
-        .eq('id', 1)
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
     
-    const isSpinActive = spinSettings?.is_active ?? false;
+    if (error) {
+        console.log("No active spin configuration found.");
+    }
+    
+    const isSpinActive = !!latestSpinConfig;
     
     return (
         <div className="space-y-6">
@@ -27,7 +34,7 @@ export default async function SpinPage() {
                     </CardHeader>
                     <CardContent className="flex items-center justify-center py-12">
                         <div className="w-full max-w-sm">
-                            <SpinWheel settings={spinSettings!} />
+                            <SpinWheel settings={latestSpinConfig as SpinConfig} />
                         </div>
                     </CardContent>
                 </Card>

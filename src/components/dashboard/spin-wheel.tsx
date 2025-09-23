@@ -5,14 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle } from "lucide-react";
 import { claimSpinPrize } from "@/app/admin/spin/actions";
+import type { SpinConfig } from "@/lib/types";
 
-interface SpinSettings {
-    round1_prize: string;
-    round2_prize: string;
-    round3_prize: string;
-    is_active: boolean;
-    version: number;
-}
 
 const WHEEL_SEGMENTS = [
     { prize_label: "100", prize_color: "#6A3B99" },
@@ -29,7 +23,7 @@ const WHEEL_SEGMENTS = [
     { prize_label: "AGAIN", prize_color: "#E5383B" },
 ];
 
-export function SpinWheel({ settings }: { settings: SpinSettings }) {
+export function SpinWheel({ settings }: { settings: SpinConfig }) {
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
@@ -40,18 +34,18 @@ export function SpinWheel({ settings }: { settings: SpinSettings }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Check if the user has already played this version
-    const lastPlayedVersion = sessionStorage.getItem('lastSpinVersion');
-    if (lastPlayedVersion && parseInt(lastPlayedVersion, 10) === settings.version) {
+    // Check if the user has already played this version (identified by the config ID)
+    const lastPlayedVersionId = sessionStorage.getItem('lastSpinVersionId');
+    if (lastPlayedVersionId && parseInt(lastPlayedVersionId, 10) === settings.id) {
         setSessionFinished(true);
-        toast({ title: "Game Over", description: "You have completed all rounds for today." });
+        toast({ title: "Game Over", description: "You have completed all rounds for today. Check back later for a new game!" });
     }
 
     // Initialize audio
     audioRef.current = new Audio('/sounds/spin-tick.mp3');
     audioRef.current.loop = true;
 
-  }, [settings.version, toast]);
+  }, [settings.id, toast]);
 
   const handleSpin = () => {
     if (isSpinning || sessionFinished) return;
@@ -108,7 +102,8 @@ export function SpinWheel({ settings }: { settings: SpinSettings }) {
             setPrizeResult(null);
         } else {
             setSessionFinished(true);
-            sessionStorage.setItem('lastSpinVersion', settings.version.toString());
+            // Mark this specific configuration ID as played
+            sessionStorage.setItem('lastSpinVersionId', settings.id.toString());
             toast({ title: "Game Over", description: "You have completed all rounds for today." });
         }
   }

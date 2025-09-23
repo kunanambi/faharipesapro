@@ -57,8 +57,8 @@ export type Withdrawal = {
 
 export type SpinConfig = {
   id: number;
-  spin_order: number;
-  prize_label: string;
-  prize_color: string;
+  round1_prize: string;
+  round2_prize: string;
+  round3_prize: string;
   created_at: string;
 };
