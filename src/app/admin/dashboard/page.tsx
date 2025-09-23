@@ -3,7 +3,7 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
-import { DollarSign, Users, TrendingUp, TrendingDown, Bell, Video, Cog, User } from "lucide-react";
+import { DollarSign, Users, TrendingUp, TrendingDown, Bell, Video, Cog, User, Landmark } from "lucide-react";
 import Link from "next/link";
 import { FaInstagram, FaTiktok, FaFacebook, FaWhatsapp } from "react-icons/fa";
 import { redirect } from "next/navigation";
@@ -15,6 +15,7 @@ const formatCurrency = (value: number) => {
 const adminLinks = [
     { href: "/admin/users", title: "User Management", icon: <Users /> },
     { href: "/admin/withdrawals", title: "Withdrawal Requests", icon: <DollarSign /> },
+    { href: "/admin/expenses", title: "Manage Expenses", icon: <Landmark /> },
     { href: "/admin/notification", title: "Offer Notification", icon: <Bell /> },
     { href: "/admin/videos", title: "Manage Videos", icon: <Video /> },
     { href: "/admin/spin", title: "Spin Settings", icon: <Cog /> },
@@ -43,23 +44,27 @@ export default async function AdminDashboardPage() {
         { count: totalUsers, error: totalUsersError },
         { count: activeUsers, error: activeUsersError },
         { count: pendingUsers, error: pendingUsersError },
-        { data: approvedWithdrawals, error: withdrawalsError }
+        { data: approvedWithdrawals, error: withdrawalsError },
+        { data: otherExpenses, error: expensesError }
     ] = await Promise.all([
         supabase.from('users').select('*', { count: 'exact', head: true }),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('withdrawals').select('amount').eq('status', 'approved')
+        supabase.from('withdrawals').select('amount').eq('status', 'approved'),
+        supabase.from('expenses').select('amount')
     ]);
 
     // Handle potential errors
-    if (totalUsersError || activeUsersError || pendingUsersError || withdrawalsError) {
-        console.error("Error fetching admin dashboard data:", { totalUsersError, activeUsersError, pendingUsersError, withdrawalsError });
+    if (totalUsersError || activeUsersError || pendingUsersError || withdrawalsError || expensesError) {
+        console.error("Error fetching admin dashboard data:", { totalUsersError, activeUsersError, pendingUsersError, withdrawalsError, expensesError });
         // You can render an error message here
     }
 
     const activeUsersCount = activeUsers ?? 0;
     const totalBalance = activeUsersCount * 5200;
-    const totalExpenses = approvedWithdrawals?.reduce((sum, w) => sum + w.amount, 0) ?? 0;
+    const withdrawalExpenses = approvedWithdrawals?.reduce((sum, w) => sum + w.amount, 0) ?? 0;
+    const otherExpensesTotal = otherExpenses?.reduce((sum, e) => sum + Number(e.amount), 0) ?? 0;
+    const totalExpenses = withdrawalExpenses + otherExpensesTotal;
     const totalProfit = totalBalance - totalExpenses;
 
     return (
@@ -89,7 +94,7 @@ export default async function AdminDashboardPage() {
                     value={formatCurrency(totalExpenses)}
                     icon={<TrendingDown className="text-white/80" />}
                     cardClassName="bg-red-600/90 text-white"
-                    description="Approved Withdrawals"
+                    description="Withdrawals + Other Costs"
                 />
                  <StatCard
                     title="Profit"

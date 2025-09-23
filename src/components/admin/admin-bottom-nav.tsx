@@ -3,13 +3,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CreditCard, Users, Video, DollarSign } from "lucide-react";
+import { LayoutDashboard, CreditCard, Users, Video, DollarSign, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Home" },
   { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/withdrawals", icon: DollarSign, label: "Withdrawals" },
+  { href: "/admin/expenses", icon: Landmark, label: "Expenses" },
   { href: "/admin/videos", icon: Video, label: "Videos" },
 ];
 
@@ -33,7 +34,7 @@ export function AdminBottomNav() {
               )}
             >
               <item.icon className="h-6 w-6" />
-              <span>{item.label}</span>
+              <span className="text-xs">{item.label}</span>
             </Link>
           );
         })}

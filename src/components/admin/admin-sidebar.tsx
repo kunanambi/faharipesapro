@@ -22,6 +22,7 @@ import {
   User,
   DollarSign,
   Bell,
+  Landmark,
 } from "lucide-react";
 
 const AdminNav = () => {
@@ -55,6 +56,14 @@ const AdminNav = () => {
                     <Link href="/admin/withdrawals">
                         <DollarSign />
                         <span>Withdrawals</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Expenses" isActive={pathname === "/admin/expenses"} onClick={handleLinkClick}>
+                    <Link href="/admin/expenses">
+                        <Landmark />
+                        <span>Expenses</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
