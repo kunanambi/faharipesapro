@@ -30,7 +30,7 @@ export async function getSpinPrizes() {
 export async function updateSpinPrizes(input: SpinPrizesInput) {
     const supabase = createClient();
     
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from('spin_configurations')
         .update({
             round1_prize: input.round1_prize,
@@ -38,9 +38,7 @@ export async function updateSpinPrizes(input: SpinPrizesInput) {
             round3_prize: input.round3_prize,
             updated_at: new Date().toISOString(),
         })
-        .eq('id', 1)
-        .select()
-        .single();
+        .eq('id', 1);
 
     if (error) {
         console.error("Error updating spin prizes:", error);
@@ -49,7 +47,7 @@ export async function updateSpinPrizes(input: SpinPrizesInput) {
     
     revalidatePath('/admin/spin');
     revalidatePath('/spin'); // Revalidate the user-facing spin page
-    return { data, error: null };
+    return { data: input, error: null }; // Return the input data on success
 }
 
 // Action for when a user completes a spin round
