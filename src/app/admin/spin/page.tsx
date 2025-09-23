@@ -47,6 +47,9 @@ export default function AdminSpinSettingsPage() {
 
     const handleFormSubmit = async (formData: FormData) => {
         setIsSubmitting(true);
+        // We pass the string representation of isActive, the server action will handle conversion.
+        formData.set('is_active', String(isActive));
+        
         const newSettings = {
             round1_prize: formData.get('round1_prize') as string,
             round2_prize: formData.get('round2_prize') as string,

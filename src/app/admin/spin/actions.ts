@@ -8,7 +8,7 @@ interface SpinSettingsInput {
     round1_prize: string;
     round2_prize: string;
     round3_prize: string;
-    is_active: boolean;
+    is_active: boolean; // This can come as a string from FormData, handle it.
 }
 
 // Fetches the current spin settings for the admin form
@@ -44,6 +44,9 @@ export async function updateSpinSettings(input: SpinSettingsInput) {
     }
 
     const newVersion = (currentData.version || 0) + 1;
+    
+    // Ensure is_active is a proper boolean
+    const isActiveBoolean = String(input.is_active).toLowerCase() === 'true';
 
     const { error } = await supabase
         .from('spin_configurations')
@@ -51,7 +54,7 @@ export async function updateSpinSettings(input: SpinSettingsInput) {
             round1_prize: input.round1_prize,
             round2_prize: input.round2_prize,
             round3_prize: input.round3_prize,
-            is_active: input.is_active,
+            is_active: isActiveBoolean,
             version: newVersion,
             updated_at: new Date().toISOString(),
         })
@@ -65,7 +68,7 @@ export async function updateSpinSettings(input: SpinSettingsInput) {
     revalidatePath('/admin/spin');
     revalidatePath('/spin'); // Revalidate the user-facing spin page
     
-    const updatedData = { ...input, version: newVersion };
+    const updatedData = { ...input, is_active: isActiveBoolean, version: newVersion };
     return { data: updatedData, error: null };
 }
 
