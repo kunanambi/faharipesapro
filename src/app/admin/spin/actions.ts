@@ -62,7 +62,7 @@ export async function claimSpinPrize(prizeAmount: number) {
     }
     
     if (prizeAmount <= 0) {
-        return { error: null }; // No prize to claim
+        return { error: null, data: { message: "No prize to claim." } }; // No prize to claim
     }
 
     // Fetch user's current balance and total earnings
@@ -93,5 +93,5 @@ export async function claimSpinPrize(prizeAmount: number) {
     // Revalidate paths to show updated data
     revalidatePath('/dashboard');
     
-    return { error: null };
+    return { error: null, data: { newBalance } };
 }

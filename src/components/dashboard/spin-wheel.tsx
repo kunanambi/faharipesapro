@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { SpinConfig } from "@/lib/types";
-import { Loader2, Forward } from "lucide-react";
+import { Loader2, Forward, CheckCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { claimSpinPrize } from "@/app/admin/spin/actions";
 
@@ -15,7 +15,7 @@ interface SpinPrizes {
     round3_prize: string;
 }
 
-const WHEEL_SEGMENTS: Omit<SpinConfig, 'id' | 'created_at' | 'spin_order'>[] = [
+const WHEEL_SEGMENTS = [
     { prize_label: "100", prize_color: "#6A3B99" },
     { prize_label: "500", prize_color: "#55A630" },
     { prize_label: "TRY", prize_color: "#E5383B" },
@@ -38,6 +38,8 @@ export function SpinWheel() {
   const [prizes, setPrizes] = useState<SpinPrizes | null>(null);
   const [currentRound, setCurrentRound] = useState(1);
   const [sessionFinished, setSessionFinished] = useState(false);
+  const [prizeResult, setPrizeResult] = useState<string | null>(null);
+  const [prizeClaimed, setPrizeClaimed] = useState(false);
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -69,6 +71,9 @@ export function SpinWheel() {
   const handleSpin = () => {
     if (isSpinning || !prizes || sessionFinished) return;
     setIsSpinning(true);
+    setPrizeResult(null);
+    setPrizeClaimed(false);
+
 
     if (audioRef.current) {
         audioRef.current.play().catch(e => console.error("Audio play failed:", e));
@@ -79,40 +84,51 @@ export function SpinWheel() {
     const newRotation = rotation + (randomSpins * 360) + randomStopAngle;
     setRotation(newRotation);
 
-    setTimeout(async () => {
-      let prizeResult = "0";
-      if (currentRound === 1) prizeResult = prizes.round1_prize;
-      if (currentRound === 2) prizeResult = prizes.round2_prize;
-      if (currentRound === 3) prizeResult = prizes.round3_prize;
+    setTimeout(() => {
+      let result = "0";
+      if (currentRound === 1) result = prizes.round1_prize;
+      if (currentRound === 2) result = prizes.round2_prize;
+      if (currentRound === 3) result = prizes.round3_prize;
       
-      const prizeValue = parseInt(prizeResult, 10);
-      const isNumericPrize = !isNaN(prizeValue);
-
-      if (isNumericPrize && prizeValue > 0) {
-          const { error } = await claimSpinPrize(prizeValue);
-          if (error) {
-               toast({ title: "Error", description: error, variant: "destructive" });
-          } else {
-               toast({ title: "Congratulations!", description: `You won: TZS ${prizeValue}` });
-          }
-      } else {
-          toast({ title: "Better luck next time!", description: `You got: ${prizeResult}`, variant: "destructive" });
-      }
-
-      if (currentRound < 3) {
-          setCurrentRound(prev => prev + 1);
-          setIsSpinning(false);
-      } else {
-          setSessionFinished(true);
-          toast({ title: "Game Over", description: "You have completed all rounds for today." });
-      }
-
+      setPrizeResult(result);
+      setIsSpinning(false);
+      
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
     }, 3000); 
   };
+  
+  const handleClaimPrize = async () => {
+        if (!prizeResult || prizeClaimed) return;
+
+        const prizeValue = parseInt(prizeResult, 10);
+        const isNumericPrize = !isNaN(prizeValue);
+
+        if (isNumericPrize && prizeValue > 0) {
+            const { error } = await claimSpinPrize(prizeValue);
+            if (error) {
+                toast({ title: "Error", description: error, variant: "destructive" });
+            } else {
+                toast({ title: "Congratulations!", description: `You won: TZS ${prizeValue}` });
+            }
+        } else {
+             toast({ title: "Better luck next time!", description: `You got: ${prizeResult}`, variant: "destructive" });
+        }
+
+        setPrizeClaimed(true);
+
+        // Move to next round or end session
+        if (currentRound < 3) {
+            setCurrentRound(prev => prev + 1);
+            setPrizeResult(null);
+        } else {
+            setSessionFinished(true);
+            toast({ title: "Game Over", description: "You have completed all rounds for today." });
+        }
+  }
+
 
   const angle = 360 / WHEEL_SEGMENTS.length;
 
@@ -177,18 +193,36 @@ export function SpinWheel() {
             <span className="font-bold text-3xl text-white tracking-wider" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}>WIN!</span>
         </div>
 
-      <div className="mt-8 text-center">
-        <p className="text-xl font-bold">Round {currentRound} of 3</p>
-        <p className="text-muted-foreground">You have {3 - currentRound + 1} spins remaining.</p>
+      <div className="mt-8 text-center h-16 flex flex-col justify-center">
+        {!prizeResult ? (
+            <>
+                <p className="text-xl font-bold">Round {currentRound} of 3</p>
+                <p className="text-muted-foreground">You have {3 - currentRound + 1} spins remaining.</p>
+            </>
+        ) : (
+             <div className="flex flex-col items-center animate-in fade-in zoom-in">
+                <p className="text-lg">Your prize for Round {currentRound}:</p>
+                <p className="text-2xl font-bold text-primary">{prizeResult}</p>
+            </div>
+        )}
       </div>
 
-      <Button 
-        onClick={handleSpin} 
-        disabled={isSpinning || sessionFinished} 
-        className="mt-4 text-lg font-bold py-6 px-10 rounded-full shadow-lg bg-primary hover:bg-primary/90"
-      >
-        {isSpinning ? "Inazunguka..." : sessionFinished ? "Game Over" : "Zungusha Sasa"}
-      </Button>
+        {prizeResult && !prizeClaimed ? (
+             <Button 
+                onClick={handleClaimPrize} 
+                className="mt-4 text-lg font-bold py-6 px-10 rounded-full shadow-lg bg-green-600 hover:bg-green-700 text-white"
+            >
+                <CheckCircle className="mr-2"/> Claim Prize
+            </Button>
+        ) : (
+             <Button 
+                onClick={handleSpin} 
+                disabled={isSpinning || sessionFinished} 
+                className="mt-4 text-lg font-bold py-6 px-10 rounded-full shadow-lg bg-primary hover:bg-primary/90"
+            >
+                {isSpinning ? "Inazunguka..." : sessionFinished ? "Game Over" : "Zungusha Sasa"}
+            </Button>
+        )}
     </div>
   );
 }
