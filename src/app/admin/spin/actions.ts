@@ -4,50 +4,69 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-interface SpinPrizesInput {
+interface SpinSettingsInput {
     round1_prize: string;
     round2_prize: string;
     round3_prize: string;
+    is_active: boolean;
 }
 
-// Fetches the current spin prizes for the admin form
-export async function getSpinPrizes() {
+// Fetches the current spin settings for the admin form
+export async function getSpinSettings() {
     const supabase = createClient();
     const { data, error } = await supabase
         .from('spin_configurations')
-        .select('round1_prize, round2_prize, round3_prize')
+        .select('round1_prize, round2_prize, round3_prize, is_active, version')
         .eq('id', 1)
         .single();
     
     if (error) {
-        console.error("Error fetching spin prizes:", error);
+        console.error("Error fetching spin settings:", error);
         return null;
     }
     return data;
 }
 
-// Updates the spin prizes
-export async function updateSpinPrizes(input: SpinPrizesInput) {
+// Updates the spin settings and increments the version
+export async function updateSpinSettings(input: SpinSettingsInput) {
     const supabase = createClient();
+
+    // First, get the current version
+    const { data: currentData, error: getError } = await supabase
+        .from('spin_configurations')
+        .select('version')
+        .eq('id', 1)
+        .single();
     
+    if (getError) {
+        console.error("Error fetching current spin version:", getError);
+        return { error: 'Failed to get current settings version.' };
+    }
+
+    const newVersion = (currentData.version || 0) + 1;
+
     const { error } = await supabase
         .from('spin_configurations')
         .update({
             round1_prize: input.round1_prize,
             round2_prize: input.round2_prize,
             round3_prize: input.round3_prize,
+            is_active: input.is_active,
+            version: newVersion,
             updated_at: new Date().toISOString(),
         })
         .eq('id', 1);
 
     if (error) {
-        console.error("Error updating spin prizes:", error);
-        return { error: 'Failed to update spin prizes.' };
+        console.error("Error updating spin settings:", error);
+        return { error: 'Failed to update spin settings.' };
     }
     
     revalidatePath('/admin/spin');
     revalidatePath('/spin'); // Revalidate the user-facing spin page
-    return { data: input, error: null }; // Return the input data on success
+    
+    const updatedData = { ...input, version: newVersion };
+    return { data: updatedData, error: null };
 }
 
 // Action for when a user completes a spin round
@@ -60,7 +79,8 @@ export async function claimSpinPrize(prizeAmount: number) {
     }
     
     if (prizeAmount <= 0) {
-        return { error: null, data: { message: "No prize to claim." } }; // No prize to claim
+        // No prize to claim, but the action is successful.
+        return { error: null, data: { message: "No prize value to claim." } };
     }
 
     // Fetch user's current balance and total earnings

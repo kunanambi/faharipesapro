@@ -3,16 +3,15 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { cn } from "@/lib/utils";
-import type { SpinConfig } from "@/lib/types";
-import { Loader2, Forward, CheckCircle } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { Loader2, CheckCircle } from "lucide-react";
 import { claimSpinPrize } from "@/app/admin/spin/actions";
 
-interface SpinPrizes {
+interface SpinSettings {
     round1_prize: string;
     round2_prize: string;
     round3_prize: string;
+    is_active: boolean;
+    version: number;
 }
 
 const WHEEL_SEGMENTS = [
@@ -30,12 +29,9 @@ const WHEEL_SEGMENTS = [
     { prize_label: "AGAIN", prize_color: "#E5383B" },
 ];
 
-
-export function SpinWheel() {
+export function SpinWheel({ settings }: { settings: SpinSettings }) {
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [prizes, setPrizes] = useState<SpinPrizes | null>(null);
   const [currentRound, setCurrentRound] = useState(1);
   const [sessionFinished, setSessionFinished] = useState(false);
   const [prizeResult, setPrizeResult] = useState<string | null>(null);
@@ -44,36 +40,24 @@ export function SpinWheel() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    // Check if the user has already played this version
+    const lastPlayedVersion = sessionStorage.getItem('lastSpinVersion');
+    if (lastPlayedVersion && parseInt(lastPlayedVersion, 10) === settings.version) {
+        setSessionFinished(true);
+        toast({ title: "Game Over", description: "You have completed all rounds for today." });
+    }
+
+    // Initialize audio
     audioRef.current = new Audio('/sounds/spin-tick.mp3');
     audioRef.current.loop = true;
 
-    const fetchSpinPrizes = async () => {
-        const supabase = createClient();
-        setLoading(true);
-        const { data, error } = await supabase
-            .from('spin_configurations')
-            .select('round1_prize, round2_prize, round3_prize')
-            .eq('id', 1)
-            .single();
-        
-        if (error || !data) {
-            toast({ title: "Error", description: "Could not load spin settings.", variant: "destructive" });
-        } else {
-            setPrizes(data as SpinPrizes);
-        }
-        setLoading(false);
-    }
-
-    fetchSpinPrizes();
-
-  }, [toast]);
+  }, [settings.version, toast]);
 
   const handleSpin = () => {
-    if (isSpinning || !prizes || sessionFinished) return;
+    if (isSpinning || sessionFinished) return;
     setIsSpinning(true);
     setPrizeResult(null);
     setPrizeClaimed(false);
-
 
     if (audioRef.current) {
         audioRef.current.play().catch(e => console.error("Audio play failed:", e));
@@ -86,9 +70,9 @@ export function SpinWheel() {
 
     setTimeout(() => {
       let result = "0";
-      if (currentRound === 1) result = prizes.round1_prize;
-      if (currentRound === 2) result = prizes.round2_prize;
-      if (currentRound === 3) result = prizes.round3_prize;
+      if (currentRound === 1) result = settings.round1_prize;
+      if (currentRound === 2) result = settings.round2_prize;
+      if (currentRound === 3) result = settings.round3_prize;
       
       setPrizeResult(result);
       setIsSpinning(false);
@@ -119,12 +103,12 @@ export function SpinWheel() {
 
         setPrizeClaimed(true);
 
-        // Move to next round or end session
         if (currentRound < 3) {
             setCurrentRound(prev => prev + 1);
             setPrizeResult(null);
         } else {
             setSessionFinished(true);
+            sessionStorage.setItem('lastSpinVersion', settings.version.toString());
             toast({ title: "Game Over", description: "You have completed all rounds for today." });
         }
   }
@@ -132,12 +116,8 @@ export function SpinWheel() {
 
   const angle = 360 / WHEEL_SEGMENTS.length;
 
-  if (loading) {
+  if (!settings) {
     return <div className="flex flex-col items-center justify-center h-80"><Loader2 className="h-10 w-10 animate-spin" /><p className="mt-4">Loading Wheel...</p></div>
-  }
-
-  if (!prizes) {
-    return <div className="text-center h-80 flex items-center justify-center">The spin wheel is not configured yet.</div>
   }
 
   return (
@@ -197,7 +177,7 @@ export function SpinWheel() {
         {!prizeResult ? (
             <>
                 <p className="text-xl font-bold">Round {currentRound} of 3</p>
-                <p className="text-muted-foreground">You have {3 - currentRound + 1} spins remaining.</p>
+                {!sessionFinished && <p className="text-muted-foreground">You have {3 - currentRound + 1} spins remaining.</p>}
             </>
         ) : (
              <div className="flex flex-col items-center animate-in fade-in zoom-in">
