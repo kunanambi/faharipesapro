@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 
@@ -42,23 +42,44 @@ export function LoginView() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { email, password } = values;
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
+    if (authError || !authData.user) {
       toast({
         title: "Login Failed",
-        description: error.message,
+        description: authError?.message || "An unexpected error occurred.",
         variant: "destructive",
       });
       return;
     }
-
-    // Redirect ALL users to the dashboard. The dashboard page itself
-    // will handle logic for pending users or role-based redirection (admin/user).
-    router.push('/dashboard');
+    
+    // After successful login, fetch the user's profile from the public table
+    const { data: publicUser, error: publicUserError } = await supabase
+        .from('users')
+        .select('status')
+        .eq('id', authData.user.id)
+        .single();
+    
+    if (publicUserError) {
+        toast({
+            title: "Could not retrieve user profile",
+            description: "An error occurred while fetching your profile. Please try again.",
+            variant: "destructive",
+        });
+        // Log out the user if their public profile is missing
+        await supabase.auth.signOut();
+        return;
+    }
+    
+    // Redirect based on status
+    if (publicUser?.status === 'pending') {
+        router.push('/pending');
+    } else {
+        router.push('/dashboard');
+    }
   }
 
   return (
@@ -123,7 +144,8 @@ export function LoginView() {
                 className="w-full !mt-10 rounded-full py-6 text-lg font-bold bg-gradient-to-r from-[#e6b366] to-[#d4a050] text-primary-foreground"
                 disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting ? "Logging in..." : "Login"}
+              {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Login"}
+              {form.formState.isSubmitting && "Logging in..."}
             </Button>
           </form>
         </Form>
