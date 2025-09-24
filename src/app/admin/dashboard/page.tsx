@@ -24,7 +24,6 @@ const adminLinks = [
 export default async function AdminDashboardPage() {
     const supabase = createClient();
 
-    // Check for user and admin role
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         redirect('/');
@@ -39,43 +38,39 @@ export default async function AdminDashboardPage() {
         redirect('/dashboard');
     }
 
-    // Fetch all required data concurrently
-    const [
-        totalUsersResult,
-        activeUsersResult,
-        pendingUsersResult,
-        withdrawalsResult,
-        expensesResult
-    ] = await Promise.all([
-        supabase.from('users').select('*', { count: 'exact', head: true }),
-        supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-        supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('withdrawals').select('amount').eq('status', 'approved'),
-        supabase.from('expenses').select('amount')
-    ]);
-    
-    const { count: totalUsers, error: totalUsersError } = totalUsersResult;
-    const { count: activeUsers, error: activeUsersError } = activeUsersResult;
-    const { count: pendingUsers, error: pendingUsersError } = pendingUsersResult;
-    const { data: approvedWithdrawals, error: withdrawalsError } = withdrawalsResult;
-    const { data: otherExpenses, error: expensesError } = expensesResult;
+    // Fetch data sequentially to isolate errors
+    const { count: totalUsers, error: totalUsersError } = await supabase
+        .from('users').select('*', { count: 'exact', head: true });
 
+    const { count: activeUsers, error: activeUsersError } = await supabase
+        .from('users').select('*', { count: 'exact', head: true }).eq('status', 'approved');
 
-    // Handle potential errors
+    const { count: pendingUsers, error: pendingUsersError } = await supabase
+        .from('users').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+
+    const { data: approvedWithdrawals, error: withdrawalsError } = await supabase
+        .from('withdrawals').select('amount').eq('status', 'approved');
+
+    const { data: otherExpenses, error: expensesError } = await supabase
+        .from('expenses').select('amount');
+
+    // Detailed error logging
     if (totalUsersError || activeUsersError || pendingUsersError || withdrawalsError || expensesError) {
-        console.error("Error fetching admin dashboard data:", { 
-            totalUsersError: totalUsersError ? totalUsersError.message : null, 
-            activeUsersError: activeUsersError ? activeUsersError.message : null, 
-            pendingUsersError: pendingUsersError ? pendingUsersError.message : null, 
-            withdrawalsError: withdrawalsError ? withdrawalsError.message : null, 
-            expensesError: expensesError ? expensesError.message : null 
+        console.error("Error fetching admin dashboard data:", {
+            totalUsersError: totalUsersError?.message,
+            activeUsersError: activeUsersError?.message,
+            pendingUsersError: pendingUsersError?.message,
+            withdrawalsError: withdrawalsError?.message,
+            expensesError: expensesError?.message,
         });
     }
 
     const activeUsersCount = activeUsers ?? 0;
     const totalBalance = activeUsersCount * 5200;
+    
     const withdrawalExpenses = approvedWithdrawals?.reduce((sum, w) => sum + w.amount, 0) ?? 0;
-    const otherExpensesTotal = otherExpenses?.reduce((sum, e) => sum + Number(e.amount), 0) ?? 0;
+    const otherExpensesTotal = otherExpenses?.reduce((sum, e) => sum + Number(e.amount || 0), 0) ?? 0;
+
     const totalExpenses = withdrawalExpenses + otherExpensesTotal;
     const totalProfit = totalBalance - totalExpenses;
 
