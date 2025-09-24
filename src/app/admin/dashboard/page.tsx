@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { DollarSign, Users, TrendingUp, TrendingDown, Bell, Video, Cog, User, Landmark } from "lucide-react";
 import Link from "next/link";
-import { FaInstagram, FaTiktok, FaFacebook, FaWhatsapp } from "react-icons/fa";
 import { redirect } from "next/navigation";
 
 const formatCurrency = (value: number) => {
