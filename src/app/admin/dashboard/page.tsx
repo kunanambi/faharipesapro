@@ -41,11 +41,11 @@ export default async function AdminDashboardPage() {
 
     // Fetch all required data concurrently
     const [
-        { count: totalUsers, error: totalUsersError },
-        { count: activeUsers, error: activeUsersError },
-        { count: pendingUsers, error: pendingUsersError },
-        { data: approvedWithdrawals, error: withdrawalsError },
-        { data: otherExpenses, error: expensesError }
+        totalUsersResult,
+        activeUsersResult,
+        pendingUsersResult,
+        withdrawalsResult,
+        expensesResult
     ] = await Promise.all([
         supabase.from('users').select('*', { count: 'exact', head: true }),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
@@ -53,11 +53,23 @@ export default async function AdminDashboardPage() {
         supabase.from('withdrawals').select('amount').eq('status', 'approved'),
         supabase.from('expenses').select('amount')
     ]);
+    
+    const { count: totalUsers, error: totalUsersError } = totalUsersResult;
+    const { count: activeUsers, error: activeUsersError } = activeUsersResult;
+    const { count: pendingUsers, error: pendingUsersError } = pendingUsersResult;
+    const { data: approvedWithdrawals, error: withdrawalsError } = withdrawalsResult;
+    const { data: otherExpenses, error: expensesError } = expensesResult;
+
 
     // Handle potential errors
     if (totalUsersError || activeUsersError || pendingUsersError || withdrawalsError || expensesError) {
-        console.error("Error fetching admin dashboard data:", { totalUsersError, activeUsersError, pendingUsersError, withdrawalsError, expensesError });
-        // You can render an error message here
+        console.error("Error fetching admin dashboard data:", { 
+            totalUsersError: totalUsersError ? totalUsersError.message : null, 
+            activeUsersError: activeUsersError ? activeUsersError.message : null, 
+            pendingUsersError: pendingUsersError ? pendingUsersError.message : null, 
+            withdrawalsError: withdrawalsError ? withdrawalsError.message : null, 
+            expensesError: expensesError ? expensesError.message : null 
+        });
     }
 
     const activeUsersCount = activeUsers ?? 0;
