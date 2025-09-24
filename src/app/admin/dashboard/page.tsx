@@ -14,7 +14,6 @@ const formatCurrency = (value: number) => {
 const adminLinks = [
     { href: "/admin/users", title: "User Management", icon: <Users /> },
     { href: "/admin/withdrawals", title: "Withdrawal Requests", icon: <DollarSign /> },
-    { href: "/admin/expenses", title: "Manage Expenses", icon: <Landmark /> },
     { href: "/admin/notification", title: "Offer Notification", icon: <Bell /> },
     { href: "/admin/videos", title: "Manage Videos", icon: <Video /> },
     { href: "/admin/spin", title: "Spin Settings", icon: <Cog /> },
@@ -49,18 +48,14 @@ export default async function AdminDashboardPage() {
 
     const { data: approvedWithdrawals, error: withdrawalsError } = await supabase
         .from('withdrawals').select('amount').eq('status', 'approved');
-
-    const { data: otherExpenses, error: expensesError } = await supabase
-        .from('expenses').select('amount');
-
+    
     // Detailed error logging
-    if (totalUsersError || activeUsersError || pendingUsersError || withdrawalsError || expensesError) {
+    if (totalUsersError || activeUsersError || pendingUsersError || withdrawalsError) {
         console.error("Error fetching admin dashboard data:", {
             totalUsersError: totalUsersError?.message,
             activeUsersError: activeUsersError?.message,
             pendingUsersError: pendingUsersError?.message,
             withdrawalsError: withdrawalsError?.message,
-            expensesError: expensesError?.message,
         });
     }
 
@@ -68,9 +63,8 @@ export default async function AdminDashboardPage() {
     const totalBalance = activeUsersCount * 5200;
     
     const withdrawalExpenses = approvedWithdrawals?.reduce((sum, w) => sum + w.amount, 0) ?? 0;
-    const otherExpensesTotal = otherExpenses?.reduce((sum, e) => sum + Number(e.amount || 0), 0) ?? 0;
 
-    const totalExpenses = withdrawalExpenses + otherExpensesTotal;
+    const totalExpenses = withdrawalExpenses;
     const totalProfit = totalBalance - totalExpenses;
 
     return (
@@ -100,7 +94,7 @@ export default async function AdminDashboardPage() {
                     value={formatCurrency(totalExpenses)}
                     icon={<TrendingDown className="text-white/80" />}
                     cardClassName="bg-red-600/90 text-white"
-                    description="Withdrawals + Other Costs"
+                    description="Approved Withdrawals"
                 />
                  <StatCard
                     title="Profit"

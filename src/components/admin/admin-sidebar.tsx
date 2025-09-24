@@ -59,14 +59,6 @@ const AdminNav = () => {
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
-             <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Expenses" isActive={pathname === "/admin/expenses"} onClick={handleLinkClick}>
-                    <Link href="/admin/expenses">
-                        <Landmark />
-                        <span>Expenses</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
             <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Offer Notification" isActive={pathname === "/admin/notification"} onClick={handleLinkClick}>
                     <Link href="/admin/notification">

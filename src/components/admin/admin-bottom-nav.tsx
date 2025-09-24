@@ -10,7 +10,6 @@ const navItems = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Home" },
   { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/withdrawals", icon: DollarSign, label: "Withdrawals" },
-  { href: "/admin/expenses", icon: Landmark, label: "Expenses" },
   { href: "/admin/videos", icon: Video, label: "Videos" },
 ];
 
