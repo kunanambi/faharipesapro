@@ -24,29 +24,30 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single();
 
-  // If the profile fetch fails OR if the user profile doesn't exist yet (common after sign-up)
-  if (publicUserError && publicUserError.code !== 'PGRST116') { // PGRST116 means no rows found
+  // If there's an unexpected error (other than 'no rows found')
+  if (publicUserError && publicUserError.code !== 'PGRST116') {
     console.error("Error fetching public user data:", publicUserError);
-    // An unexpected error occurred, redirecting to login is a safe fallback.
+    // Fallback to login for safety
     redirect('/');
     return;
   }
   
+  // REDIRECTION LOGIC
+  if (publicUser?.role === 'admin') {
+      redirect('/admin/dashboard');
+  }
+  
+  if (publicUser?.status === 'pending') {
+    redirect('/pending');
+  }
+  
+  // If we reach here, and there's no public user, it might be a new user whose profile
+  // is not created yet. The safest thing is to show them the pending page.
   if (!publicUser) {
-    // This can happen if the public.users record hasn't been created yet by the trigger.
-    // Redirecting to pending is a safe state.
     redirect('/pending');
     return;
   }
   
-  // REDIRECTION LOGIC: Check the user's role
-  if (publicUser.role === 'admin') {
-      redirect('/admin/dashboard');
-  }
-  
-  if (publicUser.status === 'pending') {
-    redirect('/pending');
-  }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US').format(value) + ' TZS';
