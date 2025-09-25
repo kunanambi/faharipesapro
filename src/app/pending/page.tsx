@@ -25,6 +25,18 @@ const MastercardLogo = () => (
     </svg>
 );
 
+const FahariLogo = () => (
+    <div className="relative w-16 h-16 mb-4">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+            <path d="M5 9C5 7.89543 5.89543 7 7 7H17C18.1046 7 19 7.89543 19 9V18C19 19.1046 18.1046 20 17 20H7C5.89543 20 5 19.1046 5 18V9Z" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+            <path d="M9 14H13" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M9 11V17" stroke="hsl(var(--primary))" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M15 7C15 4.79086 13.2091 3 11 3C8.79086 3 7 4.79086 7 7" stroke="hsl(var(--primary))" strokeWidth="1.5"/>
+        </svg>
+    </div>
+);
+
+
 export default function PendingPage() {
     const [user, setUser] = useState<User | null>(null);
     const supabase = createClient();
@@ -63,10 +75,8 @@ export default function PendingPage() {
       <div className="w-full max-w-md text-center">
 
         <div className="flex flex-col items-center justify-center mb-8">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-card border-2 border-primary mb-4">
-                <span className="font-headline text-4xl font-bold text-primary">F</span>
-            </div>
-             <h1 className="font-headline text-3xl font-bold text-white">Fahari Pesa</h1>
+            <FahariLogo />
+            <h1 className="font-headline text-3xl font-bold text-white">Fahari Pesa</h1>
         </div>
 
         <p className="text-muted-foreground mb-6">
