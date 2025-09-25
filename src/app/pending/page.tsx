@@ -19,49 +19,20 @@ const MastercardLogo = () => (
     </svg>
 );
 
-interface PendingContent {
-    title: string;
-    instructions: string;
-    payment_number: string;
-    payment_name: string;
-    image_url: string | null;
-}
 
 export default function PendingPage() {
     const [user, setUser] = useState<User | null>(null);
-    const [content, setContent] = useState<PendingContent | null>(null);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
     const router = useRouter();
 
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
+        const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             setUser(user);
-
-            const { data: contentData, error: contentError } = await supabase
-                .from('pending_page_content')
-                .select('*')
-                .eq('id', 1)
-                .single();
-            
-            if (contentError) {
-                console.error("Error fetching pending page content:", contentError);
-                // Set default content in case of an error
-                setContent({
-                    title: 'Payment Instructions',
-                    instructions: 'After making payment, click the button below and submit your payment screenshot for account activation.',
-                    payment_number: '0768 525 345',
-                    payment_name: 'Joseph Kunambi',
-                    image_url: null,
-                });
-            } else {
-                setContent(contentData);
-            }
             setLoading(false);
         };
-        fetchData();
+        checkUser();
     }, [supabase]);
 
 
@@ -76,7 +47,7 @@ export default function PendingPage() {
         router.push('/');
     };
 
-    if (loading || !content) {
+    if (loading) {
         return (
             <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
                 <Loader2 className="h-10 w-10 animate-spin" />
@@ -99,7 +70,7 @@ export default function PendingPage() {
             Hi, <span className="font-bold text-primary">{user?.user_metadata?.username || "user"}</span>! Your account is pending approval. Please complete the payment to activate your account.
         </p>
 
-        <h2 className="font-headline text-2xl font-bold text-white mb-4">{content.title}</h2>
+        <h2 className="font-headline text-2xl font-bold text-white mb-4">Payment Instructions</h2>
 
         {/* Payment Card */}
         <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-yellow-600/30 to-neutral-900 p-6 text-left shadow-2xl mb-8 text-white relative overflow-hidden">
@@ -116,30 +87,18 @@ export default function PendingPage() {
                 </div>
 
                 <div className="font-mono text-xl tracking-wider mb-2">
-                    {content.payment_number}
+                    0768 525 345
                 </div>
                 <div className="flex justify-between items-end">
-                    <p className="font-semibold text-lg">{content.payment_name}</p>
+                    <p className="font-semibold text-lg">Joseph Kunambi</p>
                     <MastercardLogo />
                 </div>
             </div>
         </div>
         
         <p className="text-muted-foreground mb-8">
-            {content.instructions}
+           After making payment, click the button below and submit your payment screenshot for account activation.
         </p>
-
-        {content.image_url && (
-            <div className="mb-8">
-                <Image
-                    src={content.image_url}
-                    alt="Additional Info"
-                    width={400}
-                    height={400}
-                    className="rounded-lg w-full h-auto object-contain"
-                />
-            </div>
-        )}
 
         <div className="space-y-4">
             <Button asChild className="w-full rounded-full py-6 text-lg font-bold bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700">

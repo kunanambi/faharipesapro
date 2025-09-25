@@ -17,7 +17,6 @@ const adminLinks = [
     { href: "/admin/notification", title: "Offer Notification", icon: <Bell /> },
     { href: "/admin/videos", title: "Manage Videos", icon: <Video /> },
     { href: "/admin/spin", title: "Spin Settings", icon: <Cog /> },
-    { href: "/admin/pending-settings", title: "Pending Page", icon: <Cog /> },
 ]
 
 export default async function AdminDashboardPage() {

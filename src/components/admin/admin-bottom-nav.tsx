@@ -11,7 +11,7 @@ const navItems = [
   { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/withdrawals", icon: DollarSign, label: "Withdrawals" },
   { href: "/admin/videos", icon: Video, label: "Videos" },
-  { href: "/admin/pending-settings", icon: Cog, label: "Settings" },
+  { href: "/admin/spin", icon: Cog, label: "Spin" },
 ];
 
 export function AdminBottomNav() {
