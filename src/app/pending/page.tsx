@@ -10,6 +10,13 @@ import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 
+interface PendingContent {
+    title: string;
+    instructions: string;
+    payment_number: string;
+    payment_name: string;
+}
+
 // A simple placeholder for the Mastercard logo
 const MastercardLogo = () => (
     <svg width="48" height="30" viewBox="0 0 48 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -19,9 +26,9 @@ const MastercardLogo = () => (
     </svg>
 );
 
-
 export default function PendingPage() {
     const [user, setUser] = useState<User | null>(null);
+    const [content, setContent] = useState<PendingContent | null>(null);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
     const router = useRouter();
@@ -34,38 +41,51 @@ export default function PendingPage() {
                 return;
             }
             setUser(user);
+            
+            // Fetch content from the new table
+            const { data: contentData, error: contentError } = await supabase
+                .from('pending_page_content')
+                .select('title, instructions, payment_number, payment_name')
+                .eq('id', 1)
+                .single();
+
+            if (contentData) {
+                setContent(contentData);
+            } else {
+                console.error("Could not fetch pending page content:", contentError);
+                // Fallback content
+                setContent({
+                    title: "Activate Your Account",
+                    instructions: "After making payment, click the button below and submit your payment screenshot for account activation.",
+                    payment_number: "0768 525 345",
+                    payment_name: "Joseph Kunambi",
+                });
+            }
+
             setLoading(false);
         };
         fetchData();
     }, [supabase, router]);
-
-    const content = {
-        title: "Activate Your Account",
-        instructions: "After making payment, click the button below and submit your payment screenshot for account activation.",
-        payment_number: "0768 525 345",
-        payment_name: "Joseph Kunambi",
-        image_url: null, // We are not using image from db anymore.
-    };
-
-
-    const whatsappNumber = "+255768525345";
-    const whatsappMessage = `Hi Sir, I have made the payment. Please activate my account. Username: ${user?.user_metadata?.username || ''} Email: ${user?.email || ''}`;
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-      whatsappMessage
-    )}`;
-
+    
     const handleLogout = async () => {
         await supabase.auth.signOut();
         router.push('/');
     };
 
-    if (loading) {
+    if (loading || !content) {
         return (
             <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
                 <Loader2 className="h-10 w-10 animate-spin" />
             </div>
         );
     }
+    
+    const whatsappNumber = "+255768525345";
+    const whatsappMessage = `Hi Sir, I have made the payment. Please activate my account. Username: ${user?.user_metadata?.username || ''} Email: ${user?.email || ''}`;
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+      whatsappMessage
+    )}`;
+
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-background p-4 font-body">
@@ -128,4 +148,3 @@ export default function PendingPage() {
     </div>
   );
 }
-
