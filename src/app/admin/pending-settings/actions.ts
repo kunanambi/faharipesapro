@@ -12,7 +12,6 @@ async function fileToDataUri(file: File): Promise<string> {
 }
 
 export async function getPendingContent() {
-    // Use the standard client for reads, as it's allowed for all authenticated users
     const supabase = createAdminClient(); 
     const { data, error } = await supabase
         .from('pending_page_content')
@@ -45,7 +44,12 @@ export async function updatePendingContent(formData: FormData) {
     };
 
     if (imageFile && imageFile.size > 0) {
-        updates.image_url = await fileToDataUri(imageFile);
+        try {
+            updates.image_url = await fileToDataUri(imageFile);
+        } catch (e) {
+            console.error('Error converting file to data URI:', e);
+            return { error: 'Failed to process image file.' };
+        }
     }
 
     const { error } = await supabase
@@ -55,7 +59,7 @@ export async function updatePendingContent(formData: FormData) {
 
     if (error) {
         console.error("Error updating pending content:", error);
-        return { error: 'Failed to update content. Check server logs.' };
+        return { error: 'Failed to update content. Check server logs and RLS policies.' };
     }
 
     revalidatePath('/admin/pending-settings');
