@@ -10,14 +10,6 @@ import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 
-interface PendingContent {
-    title: string;
-    instructions: string;
-    payment_number: string;
-    payment_name: string;
-    image_url: string | null;
-}
-
 // A simple placeholder for the Mastercard logo
 const MastercardLogo = () => (
     <svg width="48" height="30" viewBox="0 0 48 30" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,7 +22,6 @@ const MastercardLogo = () => (
 
 export default function PendingPage() {
     const [user, setUser] = useState<User | null>(null);
-    const [content, setContent] = useState<PendingContent | null>(null);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
     const router = useRouter();
@@ -43,23 +34,18 @@ export default function PendingPage() {
                 return;
             }
             setUser(user);
-
-            const { data: contentData, error: contentError } = await supabase
-                .from('pending_page_content')
-                .select('*')
-                .eq('id', 1)
-                .single();
-
-            if (contentError) {
-                console.error("Error fetching pending page content:", contentError);
-            } else {
-                setContent(contentData);
-            }
-            
             setLoading(false);
         };
         fetchData();
     }, [supabase, router]);
+
+    const content = {
+        title: "Activate Your Account",
+        instructions: "After making payment, click the button below and submit your payment screenshot for account activation.",
+        payment_number: "0768 525 345",
+        payment_name: "Joseph Kunambi",
+        image_url: null, // We are not using image from db anymore.
+    };
 
 
     const whatsappNumber = "+255768525345";
@@ -73,7 +59,7 @@ export default function PendingPage() {
         router.push('/');
     };
 
-    if (loading || !content) {
+    if (loading) {
         return (
             <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
                 <Loader2 className="h-10 w-10 animate-spin" />
@@ -138,19 +124,8 @@ export default function PendingPage() {
                 Logout
             </Button>
         </div>
-
-        {content.image_url && (
-            <div className="mt-8">
-                <Image 
-                    src={content.image_url} 
-                    alt="Promotional Image" 
-                    width={400} 
-                    height={200} 
-                    className="rounded-lg object-cover w-full"
-                />
-            </div>
-        )}
       </div>
     </div>
   );
 }
+

@@ -23,7 +23,6 @@ import {
   DollarSign,
   Bell,
   Landmark,
-  Settings,
 } from "lucide-react";
 
 const AdminNav = () => {
@@ -81,14 +80,6 @@ const AdminNav = () => {
                     <Link href="/admin/spin">
                         <Cog />
                         <span>Spin Settings</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Pending Settings" isActive={pathname === "/admin/pending-settings"} onClick={handleLinkClick}>
-                    <Link href="/admin/pending-settings">
-                        <Settings />
-                        <span>Pending Settings</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
