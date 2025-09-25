@@ -1,7 +1,7 @@
 
 'use server';
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
 async function fileToDataUri(file: File): Promise<string> {
@@ -11,7 +11,7 @@ async function fileToDataUri(file: File): Promise<string> {
 }
 
 export async function updatePendingContent(formData: FormData) {
-    const supabase = createClient();
+    const supabase = createAdminClient(); // Use admin client for elevated privileges
     
     const title = formData.get('title') as string;
     const instructions = formData.get('instructions') as string;
@@ -51,7 +51,7 @@ export async function updatePendingContent(formData: FormData) {
 }
 
 export async function getPendingContent() {
-    const supabase = createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
         .from('pending_page_content')
         .select('*')
