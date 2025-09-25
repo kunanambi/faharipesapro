@@ -1,6 +1,5 @@
 'use server';
 
-import { createClient as createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -12,7 +11,8 @@ interface ContentData {
 }
 
 export async function updatePendingContent(formData: FormData) {
-    const supabase = createAdminClient();
+    // Use the standard server client. RLS policies will handle authorization.
+    const supabase = createClient();
     
     const data: ContentData = {
         title: formData.get('title') as string,
@@ -25,6 +25,8 @@ export async function updatePendingContent(formData: FormData) {
         return { error: 'All fields are required.' };
     }
 
+    // This update will only succeed if the user has the 'admin' role,
+    // as defined by our RLS policy.
     const { error } = await supabase
         .from('pending_page_content')
         .update({
@@ -38,7 +40,8 @@ export async function updatePendingContent(formData: FormData) {
 
     if (error) {
         console.error("Error updating pending content:", error);
-        return { error: `Failed to update content: ${error.message}` };
+        // The error message will be more informative now, e.g., "new row violates row-level security policy"
+        return { error: `Failed to update content. Ensure you are logged in as an admin. Details: ${error.message}` };
     }
 
     revalidatePath('/pending');
@@ -48,7 +51,6 @@ export async function updatePendingContent(formData: FormData) {
 }
 
 export async function getPendingContent() {
-    // Use the regular server client as any authenticated user can read this
     const supabase = createClient();
     const { data, error } = await supabase
         .from('pending_page_content')
