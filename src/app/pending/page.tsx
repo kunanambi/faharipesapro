@@ -10,30 +10,56 @@ import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 
+interface PendingContent {
+    title: string;
+    instructions: string;
+    payment_number: string;
+    payment_name: string;
+    image_url: string | null;
+}
+
 // A simple placeholder for the Mastercard logo
 const MastercardLogo = () => (
     <svg width="48" height="30" viewBox="0 0 48 30" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="0" y="0" width="48" height="30" rx="4" fill="transparent"/>
         <circle cx="15" cy="15" r="10" fill="#EB001B"/>
-        <circle cx="33" cy="15" r="10" fill="#F79E1B" fillOpacity="0.8"/>
+        <circle cx="33"cy="15" r="10" fill="#F79E1B" fillOpacity="0.8"/>
     </svg>
 );
 
 
 export default function PendingPage() {
     const [user, setUser] = useState<User | null>(null);
+    const [content, setContent] = useState<PendingContent | null>(null);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
     const router = useRouter();
 
     useEffect(() => {
-        const checkUser = async () => {
+        const fetchData = async () => {
             const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.push('/');
+                return;
+            }
             setUser(user);
+
+            const { data: contentData, error: contentError } = await supabase
+                .from('pending_page_content')
+                .select('*')
+                .eq('id', 1)
+                .single();
+
+            if (contentError) {
+                console.error("Error fetching pending page content:", contentError);
+            } else {
+                setContent(contentData);
+            }
+            
             setLoading(false);
         };
-        checkUser();
-    }, [supabase]);
+        fetchData();
+    }, [supabase, router]);
 
 
     const whatsappNumber = "+255768525345";
@@ -47,7 +73,7 @@ export default function PendingPage() {
         router.push('/');
     };
 
-    if (loading) {
+    if (loading || !content) {
         return (
             <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
                 <Loader2 className="h-10 w-10 animate-spin" />
@@ -59,7 +85,7 @@ export default function PendingPage() {
     <div className="flex min-h-screen w-full items-center justify-center bg-background p-4 font-body">
       <div className="w-full max-w-md text-center">
 
-      <div className="flex flex-col items-center justify-center mb-8">
+        <div className="flex flex-col items-center justify-center mb-8">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-card border-2 border-primary mb-4">
                 <span className="font-headline text-4xl font-bold text-primary">F</span>
             </div>
@@ -70,7 +96,7 @@ export default function PendingPage() {
             Hi, <span className="font-bold text-primary">{user?.user_metadata?.username || "user"}</span>! Your account is pending approval. Please complete the payment to activate your account.
         </p>
 
-        <h2 className="font-headline text-2xl font-bold text-white mb-4">Payment Instructions</h2>
+        <h2 className="font-headline text-2xl font-bold text-white mb-4">{content.title}</h2>
 
         {/* Payment Card */}
         <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-yellow-600/30 to-neutral-900 p-6 text-left shadow-2xl mb-8 text-white relative overflow-hidden">
@@ -87,17 +113,17 @@ export default function PendingPage() {
                 </div>
 
                 <div className="font-mono text-xl tracking-wider mb-2">
-                    0768 525 345
+                    {content.payment_number}
                 </div>
                 <div className="flex justify-between items-end">
-                    <p className="font-semibold text-lg">Joseph Kunambi</p>
+                    <p className="font-semibold text-lg">{content.payment_name}</p>
                     <MastercardLogo />
                 </div>
             </div>
         </div>
         
         <p className="text-muted-foreground mb-8">
-           After making payment, click the button below and submit your payment screenshot for account activation.
+           {content.instructions}
         </p>
 
         <div className="space-y-4">
@@ -112,6 +138,18 @@ export default function PendingPage() {
                 Logout
             </Button>
         </div>
+
+        {content.image_url && (
+            <div className="mt-8">
+                <Image 
+                    src={content.image_url} 
+                    alt="Promotional Image" 
+                    width={400} 
+                    height={200} 
+                    className="rounded-lg object-cover w-full"
+                />
+            </div>
+        )}
       </div>
     </div>
   );
