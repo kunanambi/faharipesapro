@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CreditCard, Users, Video, DollarSign, Landmark } from "lucide-react";
+import { LayoutDashboard, CreditCard, Users, Video, DollarSign, Landmark, Cog } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { href: "/admin/users", icon: Users, label: "Users" },
   { href: "/admin/withdrawals", icon: DollarSign, label: "Withdrawals" },
   { href: "/admin/videos", icon: Video, label: "Videos" },
+  { href: "/admin/pending-settings", icon: Cog, label: "Settings" },
 ];
 
 export function AdminBottomNav() {

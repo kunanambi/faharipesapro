@@ -83,6 +83,14 @@ const AdminNav = () => {
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Pending Page" isActive={pathname === "/admin/pending-settings"} onClick={handleLinkClick}>
+                    <Link href="/admin/pending-settings">
+                        <Cog />
+                        <span>Pending Page</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
         </>
     );
 }
