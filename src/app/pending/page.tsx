@@ -4,20 +4,19 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { LogOut, MessageCircle, Wifi, Smartphone, Loader2 } from "lucide-react";
+import { LogOut, MessageCircle, Wifi, Smartphone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import Image from 'next/image';
 
-interface PendingContent {
-    title: string;
-    instructions: string;
-    payment_number: string;
-    payment_name: string;
-}
+const content = {
+    title: "Activate Your Account",
+    instructions: "After making payment, click the button below and submit your payment screenshot for account activation.",
+    payment_number: "0768 525 345",
+    payment_name: "Joseph Kunambi",
+};
 
-// A simple placeholder for the Mastercard logo
 const MastercardLogo = () => (
     <svg width="48" height="30" viewBox="0 0 48 30" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="0" y="0" width="48" height="30" rx="4" fill="transparent"/>
@@ -28,43 +27,19 @@ const MastercardLogo = () => (
 
 export default function PendingPage() {
     const [user, setUser] = useState<User | null>(null);
-    const [content, setContent] = useState<PendingContent | null>(null);
-    const [loading, setLoading] = useState(true);
     const supabase = createClient();
     const router = useRouter();
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
                 router.push('/');
                 return;
             }
             setUser(user);
-            
-            // Fetch content from the new table
-            const { data: contentData, error: contentError } = await supabase
-                .from('pending_page_content')
-                .select('title, instructions, payment_number, payment_name')
-                .eq('id', 1)
-                .single();
-
-            if (contentData) {
-                setContent(contentData);
-            } else {
-                console.error("Could not fetch pending page content:", contentError);
-                // Fallback content
-                setContent({
-                    title: "Activate Your Account",
-                    instructions: "After making payment, click the button below and submit your payment screenshot for account activation.",
-                    payment_number: "0768 525 345",
-                    payment_name: "Joseph Kunambi",
-                });
-            }
-
-            setLoading(false);
         };
-        fetchData();
+        fetchUser();
     }, [supabase, router]);
     
     const handleLogout = async () => {
@@ -72,12 +47,8 @@ export default function PendingPage() {
         router.push('/');
     };
 
-    if (loading || !content) {
-        return (
-            <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-                <Loader2 className="h-10 w-10 animate-spin" />
-            </div>
-        );
+    if (!user) {
+        return <div className="flex min-h-screen w-full items-center justify-center bg-background p-4">Loading...</div>;
     }
     
     const whatsappNumber = "+255768525345";
@@ -104,7 +75,6 @@ export default function PendingPage() {
 
         <h2 className="font-headline text-2xl font-bold text-white mb-4">{content.title}</h2>
 
-        {/* Payment Card */}
         <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-yellow-600/30 to-neutral-900 p-6 text-left shadow-2xl mb-8 text-white relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-black/30 backdrop-blur-sm"></div>
             <div className="relative z-10">
