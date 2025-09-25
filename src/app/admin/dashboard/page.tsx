@@ -62,9 +62,9 @@ export default async function AdminDashboardPage() {
     const activeUsersCount = activeUsers ?? 0;
     const totalBalance = activeUsersCount * 5200;
     
-    const withdrawalExpenses = approvedWithdrawals?.reduce((sum, w) => sum + w.amount, 0) ?? 0;
+    // For now, expenses are just based on withdrawals. We can add more later.
+    const totalExpenses = approvedWithdrawals?.reduce((sum, w) => sum + w.amount, 0) ?? 0;
 
-    const totalExpenses = withdrawalExpenses;
     const totalProfit = totalBalance - totalExpenses;
 
     return (
