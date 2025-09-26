@@ -1,63 +1,78 @@
 
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { OfferCard } from "@/components/dashboard/offer-card";
 import { ReferralCard } from "@/components/dashboard/referral-card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
-import { BarChart2, TrendingDown, TrendingUp, Shield } from "lucide-react";
+import { BarChart2, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import type { PublicUser } from "@/lib/types";
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const router = useRouter();
+  const [user, setUser] = useState<PublicUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!user) {
-    redirect('/');
-  }
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        router.push('/');
+        return;
+      }
 
-  // Fetch the public user data which contains balance, status, and role
-  const { data: publicUser, error: publicUserError } = await supabase
-    .from('users')
-    .select('username, balance, total_earnings, status, role')
-    .eq('id', user.id)
-    .single();
+      const { data: publicUser, error } = await supabase
+        .from('users')
+        .select('username, balance, total_earnings, status, role')
+        .eq('id', authUser.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error fetching public user data:", error);
+        router.push('/');
+        return;
+      }
 
-  // If there's an unexpected error (other than 'no rows found')
-  if (publicUserError && publicUserError.code !== 'PGRST116') {
-    console.error("Error fetching public user data:", publicUserError);
-    // Fallback to login for safety
-    redirect('/');
-    return;
-  }
-  
-  // REDIRECTION LOGIC
-  if (publicUser?.role === 'admin') {
-      redirect('/admin/dashboard');
-  }
-  
-  if (publicUser?.status === 'pending') {
-    redirect('/pending');
-  }
-  
-  // If we reach here, and there's no public user, it might be a new user whose profile
-  // is not created yet. The safest thing is to show them the pending page.
-  if (!publicUser) {
-    redirect('/pending');
-    return;
-  }
-  
+      if (publicUser?.role === 'admin') {
+          router.push('/admin/dashboard');
+          return;
+      }
+      
+      if (publicUser?.status === 'pending') {
+        router.push('/pending');
+        return;
+      }
+      
+      if (!publicUser) {
+        router.push('/pending');
+        return;
+      }
+      
+      setUser(publicUser as PublicUser);
+      setLoading(false);
+    };
+
+    fetchUser();
+  }, [supabase, router]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US').format(value) + ' TZS';
   }
 
-  const balance = publicUser.balance || 0;
-  const netProfit = publicUser.total_earnings || 0;
-  const cost = 5200;
-  const username = publicUser.username || 'User';
+  if (loading) {
+      return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
 
+  const balance = user?.balance || 0;
+  const netProfit = user?.total_earnings || 0;
+  const cost = 5200;
+  const username = user?.username || 'User';
 
   return (
     <div className="space-y-8 pb-24">

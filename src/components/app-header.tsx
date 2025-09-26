@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useEffect, useState } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   DropdownMenu,
@@ -11,7 +14,9 @@ import {
 import { Button } from "./ui/button";
 import { LogOut, Settings, User, MoreVertical, Menu } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const FahariLogo = () => (
     <div className="relative w-8 h-8">
@@ -25,9 +30,23 @@ const FahariLogo = () => (
 );
 
 
-export async function AppHeader() {
+export function AppHeader() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const router = useRouter();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    }
+    getUser();
+  }, [supabase]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  }
 
   const userName = user?.user_metadata?.full_name || "Fahari User";
   const userEmail = user?.email || "user@fahari.com";
@@ -75,11 +94,9 @@ export async function AppHeader() {
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/">
+            <DropdownMenuItem onClick={handleLogout}>
                 <LogOut />
                 Log out
-              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

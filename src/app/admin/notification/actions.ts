@@ -1,7 +1,7 @@
 
 'use server';
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client"; // Changed to client
 import { revalidatePath } from "next/cache";
 
 interface NotificationData {
@@ -38,7 +38,6 @@ export async function updateNotification(formData: FormData) {
         return { error: 'Failed to update notification.' };
     }
 
-    // Revalidate the user dashboard path to show/hide the notification
     revalidatePath('/dashboard');
     revalidatePath('/admin/notification');
 

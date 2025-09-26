@@ -1,11 +1,15 @@
 
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
-import { DollarSign, Users, TrendingUp, TrendingDown, Bell, Video, Cog, User, Landmark } from "lucide-react";
+import { DollarSign, Users, TrendingUp, TrendingDown, Bell, Video, Cog, User } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import type { PublicUser, Withdrawal } from "@/lib/types";
 
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US').format(value) + ' TZS';
@@ -19,53 +23,76 @@ const adminLinks = [
     { href: "/admin/spin", title: "Spin Settings", icon: <Cog /> },
 ]
 
-export default async function AdminDashboardPage() {
+export default function AdminDashboardPage() {
     const supabase = createClient();
+    const router = useRouter();
+    const [stats, setStats] = useState({
+        totalUsers: 0,
+        activeUsers: 0,
+        pendingUsers: 0,
+        totalBalance: 0,
+        totalExpenses: 0,
+        totalProfit: 0,
+    });
+    const [loading, setLoading] = useState(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        redirect('/');
+    useEffect(() => {
+        const checkAdmin = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.push('/');
+                return;
+            }
+            const { data: publicUser } = await supabase
+                .from('users')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+
+            if (publicUser?.role !== 'admin') {
+                router.push('/dashboard');
+                return false;
+            }
+            return true;
+        };
+
+        const fetchStats = async () => {
+            const isAdmin = await checkAdmin();
+            if (!isAdmin) return;
+
+            const { data: usersData, error: usersError } = await supabase.from('users').select('status');
+            const { data: withdrawalsData, error: withdrawalsError } = await supabase.from('withdrawals').select('amount').eq('status', 'approved');
+
+            if (usersError || withdrawalsError) {
+                console.error("Error fetching admin stats:", { usersError, withdrawalsError });
+                setLoading(false);
+                return;
+            }
+
+            const totalUsers = usersData.length;
+            const activeUsers = usersData.filter(u => u.status === 'approved').length;
+            const pendingUsers = totalUsers - activeUsers;
+            const totalBalance = activeUsers * 5200;
+            const totalExpenses = withdrawalsData.reduce((sum, w) => sum + w.amount, 0);
+            const totalProfit = totalBalance - totalExpenses;
+
+            setStats({
+                totalUsers,
+                activeUsers,
+                pendingUsers,
+                totalBalance,
+                totalExpenses,
+                totalProfit,
+            });
+            setLoading(false);
+        };
+
+        fetchStats();
+    }, [supabase, router]);
+
+    if (loading) {
+        return <div className="flex justify-center items-center h-screen">Loading admin data...</div>;
     }
-    const { data: publicUser } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-    if (publicUser?.role !== 'admin') {
-        redirect('/dashboard');
-    }
-
-    // Fetch data sequentially to isolate errors
-    const { count: totalUsers, error: totalUsersError } = await supabase
-        .from('users').select('*', { count: 'exact', head: true });
-
-    const { count: activeUsers, error: activeUsersError } = await supabase
-        .from('users').select('*', { count: 'exact', head: true }).eq('status', 'approved');
-
-    const { count: pendingUsers, error: pendingUsersError } = await supabase
-        .from('users').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-
-    const { data: approvedWithdrawals, error: withdrawalsError } = await supabase
-        .from('withdrawals').select('amount').eq('status', 'approved');
-    
-    // Detailed error logging
-    if (totalUsersError || activeUsersError || pendingUsersError || withdrawalsError) {
-        console.error("Error fetching admin dashboard data:", {
-            totalUsersError: totalUsersError?.message,
-            activeUsersError: activeUsersError?.message,
-            pendingUsersError: pendingUsersError?.message,
-            withdrawalsError: withdrawalsError?.message,
-        });
-    }
-
-    const activeUsersCount = activeUsers ?? 0;
-    const totalBalance = activeUsersCount * 5200;
-    
-    // For now, expenses are just based on withdrawals. We can add more later.
-    const totalExpenses = approvedWithdrawals?.reduce((sum, w) => sum + w.amount, 0) ?? 0;
-
-    const totalProfit = totalBalance - totalExpenses;
 
     return (
         <div className="space-y-6 pb-24">
@@ -77,28 +104,28 @@ export default async function AdminDashboardPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                  <StatCard
                     title="Total Users"
-                    value={`${totalUsers ?? 0}`}
+                    value={`${stats.totalUsers}`}
                     icon={<Users className="text-white/80" />}
                     cardClassName="bg-blue-600/90 text-white"
-                    description={`Active: ${activeUsersCount}, Pending: ${pendingUsers ?? 0}`}
+                    description={`Active: ${stats.activeUsers}, Pending: ${stats.pendingUsers}`}
                 />
                  <StatCard
                     title="Balance"
-                    value={formatCurrency(totalBalance)}
+                    value={formatCurrency(stats.totalBalance)}
                     icon={<DollarSign className="text-white/80" />}
                     cardClassName="bg-green-600/90 text-white"
                     description="Active Users x 5200"
                 />
                  <StatCard
                     title="Expenses"
-                    value={formatCurrency(totalExpenses)}
+                    value={formatCurrency(stats.totalExpenses)}
                     icon={<TrendingDown className="text-white/80" />}
                     cardClassName="bg-red-600/90 text-white"
                     description="Approved Withdrawals"
                 />
                  <StatCard
                     title="Profit"
-                    value={formatCurrency(totalProfit)}
+                    value={formatCurrency(stats.totalProfit)}
                     icon={<TrendingUp className="text-white/80" />}
                     cardClassName="bg-purple-600/90 text-white"
                     description="Balance - Expenses"

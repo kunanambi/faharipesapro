@@ -2,7 +2,7 @@
 'use server'
 
 import { createClient as createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client"; // Changed to client
 import { revalidatePath } from "next/cache";
 
 const REFERRAL_BONUS = 1500;
@@ -10,7 +10,6 @@ const REFERRAL_BONUS = 1500;
 export async function approveUser(userId: string) {
     const supabase = createClient();
 
-    // Step 1: Update the user's status to 'approved' and get their details
     const { data: approvedUser, error: approveError } = await supabase
         .from('users')
         .update({ status: 'approved' })
@@ -20,83 +19,58 @@ export async function approveUser(userId: string) {
 
     if (approveError) {
         console.error("Error approving user:", approveError);
-        return { error: 'Failed to approve user. Check RLS policies and server logs.' };
+        return { error: 'Failed to approve user.' };
     }
 
-    // Step 2: If the user was referred, apply the bonus
     if (approvedUser && approvedUser.invited_by) {
         const referrerUsername = approvedUser.invited_by;
         
-        // Get the referrer's current data
         const { data: referrer, error: referrerError } = await supabase
             .from('users')
             .select('id, balance, total_earnings')
             .eq('username', referrerUsername)
             .single();
 
-        if (referrerError || !referrer) {
-            console.error(`Referrer with username ${referrerUsername} not found.`, referrerError);
-            // Even if the referrer isn't found, the user approval should not fail.
-        } else {
-            // Calculate new balance and update the referrer
+        if (referrer && !referrerError) {
             const newBalance = (referrer.balance || 0) + REFERRAL_BONUS;
             const newTotalEarnings = (referrer.total_earnings || 0) + REFERRAL_BONUS;
-            const { error: balanceError } = await supabase
+            await supabase
                 .from('users')
                 .update({ balance: newBalance, total_earnings: newTotalEarnings })
                 .eq('id', referrer.id);
-
-            if (balanceError) {
-                console.error("Error applying referral bonus:", balanceError);
-                // Log the error but don't block the main operation
-            }
         }
     }
     
     revalidatePath('/admin/users');
-    revalidatePath('/team'); // Revalidate team page to update earnings
-    revalidatePath('/dashboard'); // Revalidate dashboard to update balance
+    revalidatePath('/team');
+    revalidatePath('/dashboard');
     return { error: null };
 }
 
 async function revokeReferralBonus(userId: string) {
     const supabase = createClient();
 
-    // Step 1: Get the user who is being moved to 'pending' to find out who referred them.
-    const { data: demotedUser, error: demotedUserError } = await supabase
+    const { data: demotedUser } = await supabase
         .from('users')
         .select('invited_by')
         .eq('id', userId)
         .single();
 
-    if (demotedUserError || !demotedUser || !demotedUser.invited_by) {
-        console.log(`User ${userId} was not referred or could not be found. No bonus to revoke.`);
-        return; // No referrer, so nothing to do.
-    }
+    if (demotedUser && demotedUser.invited_by) {
+        const { data: referrer } = await supabase
+            .from('users')
+            .select('id, balance, total_earnings')
+            .eq('username', demotedUser.invited_by)
+            .single();
 
-    // Step 2: Find the referrer and get their balance.
-    const referrerUsername = demotedUser.invited_by;
-    const { data: referrer, error: referrerError } = await supabase
-        .from('users')
-        .select('id, balance, total_earnings')
-        .eq('username', referrerUsername)
-        .single();
-
-    if (referrerError || !referrer) {
-        console.error(`Referrer ${referrerUsername} not found while trying to revoke bonus.`);
-        return; // Referrer not found, can't revoke.
-    }
-
-    // Step 3: Deduct the bonus from the referrer's balance and total earnings.
-    const newBalance = Math.max(0, (referrer.balance || 0) - REFERRAL_BONUS);
-    const newTotalEarnings = Math.max(0, (referrer.total_earnings || 0) - REFERRAL_BONUS);
-    const { error: balanceError } = await supabase
-        .from('users')
-        .update({ balance: newBalance, total_earnings: newTotalEarnings })
-        .eq('id', referrer.id);
-
-    if (balanceError) {
-        console.error("Error revoking referral bonus:", balanceError);
+        if (referrer) {
+            const newBalance = Math.max(0, (referrer.balance || 0) - REFERRAL_BONUS);
+            const newTotalEarnings = Math.max(0, (referrer.total_earnings || 0) - REFERRAL_BONUS);
+            await supabase
+                .from('users')
+                .update({ balance: newBalance, total_earnings: newTotalEarnings })
+                .eq('id', referrer.id);
+        }
     }
 }
 
@@ -105,11 +79,9 @@ export async function toggleUserStatus(userId: string, currentStatus: 'approved'
     const supabase = createClient();
     const newStatus = currentStatus === 'approved' ? 'pending' : 'approved';
     
-    // This is a simplified toggle; using approveUser directly is better for bonus logic
     if (newStatus === 'approved') {
          await approveUser(userId);
     } else {
-        // If moving to pending, update status and revoke bonus
         const { error } = await supabase
             .from('users')
             .update({ status: 'pending' })
@@ -123,8 +95,8 @@ export async function toggleUserStatus(userId: string, currentStatus: 'approved'
     }
     
     revalidatePath('/admin/users');
-    revalidatePath('/team'); // Revalidate team page to update earnings/status
-    revalidatePath('/dashboard'); // Revalidate dashboard to update balance
+    revalidatePath('/team');
+    revalidatePath('/dashboard');
     return { data: { id: userId }, error: null };
 }
 
@@ -148,7 +120,7 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
 
     if (publicUserError) {
         console.error("Error updating public user data:", publicUserError);
-        return { error: 'Failed to update user profile data. Check RLS policies.' };
+        return { error: 'Failed to update user profile data.' };
     }
 
     revalidatePath('/admin/users');
@@ -157,6 +129,7 @@ export async function updateUserByAdmin({ userId, fullName, username, phone, ema
     return { data: publicUser, error: null };
 }
 
+// This needs admin client. It will stay, but we need to ensure it's used correctly.
 export async function changeUserPasswordByAdmin({ userId, newPassword }: { userId: string, newPassword: string }) {
     const supabaseAdmin = createAdminClient();
 

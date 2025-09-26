@@ -1,7 +1,7 @@
 
 'use server';
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client"; // Changed to client
 import { revalidatePath } from "next/cache";
 
 const VAT_RATE = 0.06;
@@ -9,8 +9,6 @@ const VAT_RATE = 0.06;
 export async function approveWithdrawal(withdrawalId: string) {
     const supabase = createClient();
     
-    // Note: The amount has already been deducted from the user's balance upon request.
-    // Here, we just mark the request as approved.
     const { data, error } = await supabase
         .from('withdrawals')
         .update({ status: 'approved' })
@@ -24,14 +22,13 @@ export async function approveWithdrawal(withdrawalId: string) {
     }
 
     revalidatePath('/admin/withdrawals');
-    revalidatePath(`/withdraw`); // Revalidate for user history
+    revalidatePath(`/withdraw`);
     return { data, error: null };
 }
 
 export async function rejectWithdrawal(withdrawalId: string) {
     const supabase = createClient();
 
-    // 1. Get the withdrawal details
     const { data: withdrawal, error: fetchError } = await supabase
         .from('withdrawals')
         .select('user_id, amount, status')
@@ -47,10 +44,8 @@ export async function rejectWithdrawal(withdrawalId: string) {
         return { error: "This request has already been processed." };
     }
 
-    // 2. Calculate the total amount to refund (withdrawal amount + VAT)
     const totalToRefund = withdrawal.amount * (1 + VAT_RATE);
 
-    // 3. Return the amount to the user's balance
     const { data: user, error: userError } = await supabase
         .from('users')
         .select('balance')
@@ -73,7 +68,6 @@ export async function rejectWithdrawal(withdrawalId: string) {
         return { error: "Failed to refund the user's balance." };
     }
 
-    // 4. Mark the withdrawal as rejected
     const { data, error: rejectError } = await supabase
         .from('withdrawals')
         .update({ status: 'rejected' })
@@ -83,7 +77,6 @@ export async function rejectWithdrawal(withdrawalId: string) {
 
     if (rejectError) {
         console.error("Error rejecting withdrawal:", rejectError);
-        // Attempt to roll back the refund... this is getting complex, should use a db function
         await supabase
             .from('users')
             .update({ balance: user.balance })

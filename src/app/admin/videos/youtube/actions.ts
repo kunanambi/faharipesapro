@@ -1,7 +1,7 @@
 
 'use server';
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client"; // Changed to client
 import type { Ad } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 
@@ -56,14 +56,6 @@ export async function getAdsByType(adType: string): Promise<Ad[]> {
 
 export async function deleteAd(adId: string, adType: string) {
     const supabase = createClient();
-
-    // If ad is a whatsapp ad, we need to delete the file from storage
-    if (adType === 'whatsapp') {
-        const { data: adData } = await supabase.from('ads').select('url').eq('id', adId).single();
-        // Since we are not using storage for whatsapp ads anymore, we just need to delete the record.
-        // The old logic for deleting from storage is removed to prevent errors.
-    }
-
 
     const { error } = await supabase
         .from('ads')

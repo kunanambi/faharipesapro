@@ -1,10 +1,9 @@
 
 'use server';
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client"; // Changed to client
 import { revalidatePath } from "next/cache";
 
-// Converts a file to a Base64 data URI
 async function fileToDataUri(file: File): Promise<string> {
     const buffer = await file.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
@@ -22,17 +21,15 @@ export async function addWhatsAppAd(formData: FormData) {
         return { error: 'Missing required fields: title, reward amount, or media file.' };
     }
 
-    // Convert the file to a Base64 data URI
     const mediaDataUri = await fileToDataUri(mediaFile);
 
-    // Insert the ad into the 'ads' table with the data URI in the 'url' column
     const { data, error: insertError } = await supabase
         .from('ads')
         .insert({
             title,
             reward_amount,
             ad_type: 'whatsapp',
-            url: mediaDataUri, // Store the Base64 string here
+            url: mediaDataUri,
             is_active: true,
         })
         .select()

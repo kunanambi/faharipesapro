@@ -1,13 +1,14 @@
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
-import { Ad } from "@/lib/types";
-import { PlayCircle, Calendar, Tag } from "lucide-react";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { VideoOff } from 'lucide-react';
+"use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { createClient } from "@/lib/supabase/client";
+import type { Ad } from "@/lib/types";
+import { PlayCircle, Calendar, Tag, VideoOff } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 async function getUnwatchedAds(userId: string, adType: Ad['ad_type']) {
     const supabase = createClient();
@@ -40,18 +41,33 @@ async function getUnwatchedAds(userId: string, adType: Ad['ad_type']) {
     return unwatchedAds as Ad[]; 
 }
 
-export default async function EarnFacebookPage() {
+
+export default function EarnFacebookPage() {
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const router = useRouter();
+    const [earnOptions, setEarnOptions] = useState<Ad[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    if (!user) {
-        redirect('/');
-    }
-
-    const earnOptions = await getUnwatchedAds(user.id, 'facebook');
+    useEffect(() => {
+        const fetchData = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                router.push('/');
+                return;
+            }
+            const options = await getUnwatchedAds(user.id, 'facebook');
+            setEarnOptions(options);
+            setLoading(false);
+        };
+        fetchData();
+    }, [supabase, router]);
     
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('en-US').format(value) + ' TZS';
+    }
+
+    if (loading) {
+        return <div>Loading ads...</div>;
     }
 
     return (
