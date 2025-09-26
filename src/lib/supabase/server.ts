@@ -2,10 +2,9 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-// By defining these here, we ensure they are loaded once per module
-// and are available for both client creation functions.
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// NOTE: The keys are hardcoded here to ensure they are always available.
+const supabaseUrl = 'https://wlcwmvsmuuevrewrjfib.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsY3dtdnNtdXVldnJld3JqZmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE0ODQ2MzAsImV4cCI6MjAzNzA2MDYzMH0.OQR_o-t2G2FpM_sWbM_S_1s_S-w-w_S-c_S-c_S-c_w';
 
 export function createClient() {
   const cookieStore = cookies()
