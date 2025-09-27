@@ -9,12 +9,12 @@ export function createClient() {
     return client;
   }
 
-  // NOTE: The keys are hardcoded here to ensure they are always available.
+  // NOTE: The keys are hardcoded here with the latest key provided by the user.
   // This is safe because the Anon Key is a public key and this is the most reliable way 
-  // to prevent 'Invalid API key' errors caused by environment variable issues.
+  // to prevent 'Invalid API key' errors.
   client = createSupabaseClient(
     'https://wlcwmvsmuuevrewrjfib.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsY3dtdnNtdXVldnJld3JqZmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE0ODQ2MzAsImV4cCI6MjAzNzA2MDYzMH0.OQR_o-t2G2FpM_sWbM_S_1s_S-w-w_S-c_S-c_S-c_w'
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndsY3dtdnNtdXVldnJld3JqZmliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4ODY5NTIsImV4cCI6MjA3MzQ2Mjk1Mn0.6ruySdHZu_HBNVkZOuSggVtHuwAQndGQb70Y2DpwgSE'
   );
   
   return client;
