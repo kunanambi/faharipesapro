@@ -1,7 +1,7 @@
 
 'use server';
 
-import { createClient } from "@/lib/supabase/client"; // Changed to client
+import { createClient } from "@/lib/supabase/client";
 import { revalidatePath } from "next/cache";
 
 const VAT_RATE = 0.06;

@@ -1,7 +1,7 @@
 
 'use server';
 
-import { createClient } from "@/lib/supabase/client"; // Changed to client
+import { createClient } from "@/lib/supabase/client";
 import type { Ad } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 

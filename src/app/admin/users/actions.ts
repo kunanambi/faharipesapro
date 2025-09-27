@@ -2,7 +2,7 @@
 'use server'
 
 import { createClient as createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/client"; // Changed to client
+import { createClient } from "@/lib/supabase/client";
 import { revalidatePath } from "next/cache";
 
 const REFERRAL_BONUS = 1500;

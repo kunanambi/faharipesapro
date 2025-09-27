@@ -1,7 +1,7 @@
 
 'use server';
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 import { revalidatePath } from "next/cache";
 
 interface WithdrawalRequest {
